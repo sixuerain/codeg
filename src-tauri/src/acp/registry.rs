@@ -153,7 +153,10 @@ pub fn from_registry_id(id: &str) -> Option<AgentType> {
 }
 
 pub fn get_agent_meta(agent_type: AgentType) -> AcpAgentMeta {
-    debug_assert_eq!(from_registry_id(registry_id_for(agent_type)), Some(agent_type));
+    debug_assert_eq!(
+        from_registry_id(registry_id_for(agent_type)),
+        Some(agent_type)
+    );
     match agent_type {
         AgentType::Auggie => AcpAgentMeta {
             agent_type,

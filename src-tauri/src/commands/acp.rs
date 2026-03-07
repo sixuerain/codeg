@@ -98,20 +98,146 @@ fn package_name_from_spec(package: &str) -> String {
     normalized.to_string()
 }
 
-async fn detect_npx_cached_version(package: &str) -> Option<String> {
-    let output = crate::process::tokio_command("npx")
-        .arg("--yes")
-        .arg("--no-install")
-        .arg(package)
-        .arg("--version")
-        .output()
-        .await
-        .ok()?;
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum NpmPackageBin {
+    Single(String),
+    Multiple(BTreeMap<String, String>),
+}
 
-    if !output.status.success() {
-        return None;
+#[derive(Deserialize)]
+struct NpmPackageManifest {
+    version: Option<String>,
+    bin: Option<NpmPackageBin>,
+}
+
+fn read_npx_cached_package_version(package_dir: &Path) -> Option<String> {
+    let manifest_path = package_dir.join("package.json");
+    let content = std::fs::read_to_string(manifest_path).ok()?;
+    let manifest: NpmPackageManifest = serde_json::from_str(&content).ok()?;
+    manifest
+        .version
+        .as_deref()
+        .and_then(normalize_version_candidate)
+}
+
+fn read_npx_cached_package_manifest(package_dir: &Path) -> Option<NpmPackageManifest> {
+    let manifest_path = package_dir.join("package.json");
+    let content = std::fs::read_to_string(manifest_path).ok()?;
+    serde_json::from_str(&content).ok()
+}
+
+fn npx_package_parts(package: &str) -> Vec<String> {
+    package_name_from_spec(package)
+        .split('/')
+        .filter(|part| !part.is_empty())
+        .map(ToString::to_string)
+        .collect()
+}
+
+fn npx_cached_package_dirs(cache_dir: &Path, package: &str) -> Vec<PathBuf> {
+    let package_parts = npx_package_parts(package);
+    if package_parts.is_empty() {
+        return vec![];
     }
-    parse_version_output(&output).and_then(|value| normalize_version_candidate(&value))
+
+    let npx_root = cache_dir.join("_npx");
+    let Ok(entries) = std::fs::read_dir(&npx_root) else {
+        return vec![];
+    };
+
+    let mut dirs = Vec::new();
+    for entry in entries.flatten() {
+        let root = entry.path();
+        if !root.is_dir() {
+            continue;
+        }
+
+        let mut package_dir = root.join("node_modules");
+        for part in &package_parts {
+            package_dir = package_dir.join(part);
+        }
+        if package_dir.is_dir() {
+            dirs.push(package_dir);
+        }
+    }
+
+    dirs
+}
+
+#[cfg(unix)]
+fn ensure_executable(path: &Path) -> std::io::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+
+    let metadata = std::fs::metadata(path)?;
+    let mut permissions = metadata.permissions();
+    let current = permissions.mode();
+    let next = current | 0o111;
+    if next != current {
+        permissions.set_mode(next);
+        std::fs::set_permissions(path, permissions)?;
+    }
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn ensure_executable(_path: &Path) -> std::io::Result<()> {
+    Ok(())
+}
+
+async fn ensure_npx_cached_bins_executable(package: &str) -> Result<(), AcpError> {
+    let Some(cache_dir) = npm_cache_dir().await else {
+        return Ok(());
+    };
+
+    for package_dir in npx_cached_package_dirs(&cache_dir, package) {
+        let Some(manifest) = read_npx_cached_package_manifest(&package_dir) else {
+            continue;
+        };
+
+        let mut bin_rel_paths = Vec::new();
+        match manifest.bin {
+            Some(NpmPackageBin::Single(path)) => bin_rel_paths.push(path),
+            Some(NpmPackageBin::Multiple(map)) => {
+                bin_rel_paths.extend(map.into_values());
+            }
+            None => {}
+        }
+
+        for rel_path in bin_rel_paths {
+            let script_path = package_dir.join(rel_path);
+            if !script_path.is_file() {
+                continue;
+            }
+            if let Err(e) = ensure_executable(&script_path) {
+                return Err(AcpError::protocol(format!(
+                    "failed to set executable permission for npx package script: {e}"
+                )));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+async fn detect_npx_cached_version(package: &str) -> Option<String> {
+    let cache_dir = npm_cache_dir().await?;
+    let expected = version_from_package_spec(package);
+    let mut detected = None;
+
+    for package_dir in npx_cached_package_dirs(&cache_dir, package) {
+        let version = read_npx_cached_package_version(&package_dir).or_else(|| expected.clone());
+        if let Some(found) = version {
+            if expected.as_deref() == Some(found.as_str()) {
+                return Some(found);
+            }
+            if detected.is_none() {
+                detected = Some(found);
+            }
+        }
+    }
+
+    detected
 }
 
 async fn detect_uvx_cached_version(package: &str) -> Option<String> {
@@ -147,8 +273,12 @@ async fn detect_local_version(agent_type: AgentType) -> Option<String> {
 async fn prepare_npx_package(package: &str) -> Result<(), AcpError> {
     let output = crate::process::tokio_command("npx")
         .arg("--yes")
+        .arg("--package")
         .arg(package)
-        .arg("--version")
+        .arg("--")
+        .arg("node")
+        .arg("-e")
+        .arg("process.exit(0)")
         .output()
         .await
         .map_err(|e| AcpError::protocol(format!("failed to run npx: {e}")))?;
@@ -162,6 +292,10 @@ async fn prepare_npx_package(package: &str) -> Result<(), AcpError> {
         };
         return Err(AcpError::protocol(msg));
     }
+
+    // Some npm packages ship bin scripts without executable bit.
+    // Normalize permissions in local npx cache to avoid runtime spawn failures.
+    ensure_npx_cached_bins_executable(package).await?;
 
     Ok(())
 }
@@ -1137,6 +1271,8 @@ pub async fn acp_connect(
     app_handle: tauri::AppHandle,
     window: tauri::WebviewWindow,
 ) -> Result<String, AcpError> {
+    let meta = registry::get_agent_meta(agent_type);
+
     let setting = agent_setting_service::get_by_agent_type(&db.conn, agent_type)
         .await
         .map_err(|e| AcpError::protocol(e.to_string()))?;
@@ -1152,6 +1288,14 @@ pub async fn acp_connect(
     let local_config_json = load_agent_local_config_json(agent_type);
     let runtime_env =
         build_runtime_env_from_setting(agent_type, setting.as_ref(), local_config_json.as_deref());
+
+    if let registry::AgentDistribution::Npx { package, .. } = meta.distribution {
+        if detect_npx_cached_version(package).await.is_none() {
+            prepare_npx_package(package).await?;
+        } else {
+            ensure_npx_cached_bins_executable(package).await?;
+        }
+    }
 
     manager
         .spawn_agent(
