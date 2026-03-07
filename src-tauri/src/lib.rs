@@ -220,6 +220,8 @@ pub fn run() {
             windows::focus_folder_window,
             system_settings::get_system_proxy_settings,
             system_settings::update_system_proxy_settings,
+            system_settings::get_system_language_settings,
+            system_settings::update_system_language_settings,
             acp_commands::acp_preflight,
             acp_commands::acp_connect,
             acp_commands::acp_prompt,

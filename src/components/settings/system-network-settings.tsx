@@ -1,12 +1,33 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { ArrowUpCircle, Loader2, RefreshCw, Save, Wifi } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import {
+  ArrowUpCircle,
+  Languages,
+  Loader2,
+  RefreshCw,
+  Save,
+  Wifi,
+} from "lucide-react"
 import type { Update } from "@tauri-apps/plugin-updater"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
+import { useAppI18n } from "@/components/i18n-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { getSystemProxySettings, updateSystemProxySettings } from "@/lib/tauri"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  getSystemProxySettings,
+  updateSystemLanguageSettings,
+  updateSystemProxySettings,
+} from "@/lib/tauri"
+import type { AppLocale } from "@/lib/types"
 import {
   checkAppUpdate,
   closeAppUpdate,
@@ -16,10 +37,24 @@ import {
 } from "@/lib/updater"
 
 const PROXY_EXAMPLE = "http://127.0.0.1:7890"
+const APP_LANGUAGE_VALUES = ["en", "zh_cn", "zh_tw"] as const
+
+type LanguageSelectValue = "system" | AppLocale
+
+function isAppLocale(value: string): value is AppLocale {
+  return APP_LANGUAGE_VALUES.includes(value as AppLocale)
+}
 
 export function SystemNetworkSettings() {
+  const t = useTranslations("SystemSettings")
+  const tLanguage = useTranslations("Language")
+  const locale = useLocale()
+  const { languageSettings, languageSettingsLoaded, setLanguageSettings } =
+    useAppI18n()
+
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingLanguage, setSavingLanguage] = useState(false)
   const [enabled, setEnabled] = useState(false)
   const [proxyUrl, setProxyUrl] = useState("")
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -30,39 +65,60 @@ export function SystemNetworkSettings() {
   const [updateError, setUpdateError] = useState<string | null>(null)
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null)
 
+  const [appLanguage, setAppLanguage] = useState<LanguageSelectValue>(
+    languageSettings.mode === "system" ? "system" : languageSettings.language
+  )
+
+  useEffect(() => {
+    setAppLanguage(
+      languageSettings.mode === "system" ? "system" : languageSettings.language
+    )
+  }, [languageSettings])
+
+  const languageLabels = useMemo(
+    () => ({
+      en: tLanguage("english"),
+      zh_cn: tLanguage("simplifiedChinese"),
+      zh_tw: tLanguage("traditionalChinese"),
+    }),
+    [tLanguage]
+  )
+
+  const formattedLastCheckedAt = useMemo(() => {
+    if (!lastCheckedAt) return null
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(lastCheckedAt)
+  }, [lastCheckedAt, locale])
+
   const loadSettings = useCallback(async () => {
     setLoading(true)
     setLoadError(null)
 
     try {
-      const settings = await getSystemProxySettings()
-      setEnabled(settings.enabled)
-      setProxyUrl(settings.proxy_url ?? "")
+      const [proxySettings, version] = await Promise.all([
+        getSystemProxySettings(),
+        getCurrentAppVersion(),
+      ])
+
+      setEnabled(proxySettings.enabled)
+      setProxyUrl(proxySettings.proxy_url ?? "")
+      setCurrentVersion(version)
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       setLoadError(message)
+      console.error("[Settings] load system settings failed:", err)
     } finally {
       setLoading(false)
     }
   }, [])
 
-  const loadAppVersion = useCallback(async () => {
-    try {
-      const version = await getCurrentAppVersion()
-      setCurrentVersion(version)
-    } catch (err) {
-      console.error("[Settings] load app version failed:", err)
-    }
-  }, [])
-
   useEffect(() => {
     loadSettings().catch((err) => {
-      console.error("[Settings] load system proxy settings failed:", err)
+      console.error("[Settings] load system settings failed:", err)
     })
-    loadAppVersion().catch((err) => {
-      console.error("[Settings] load app version failed:", err)
-    })
-  }, [loadSettings, loadAppVersion])
+  }, [loadSettings])
 
   useEffect(() => {
     return () => {
@@ -75,7 +131,7 @@ export function SystemNetworkSettings() {
 
   const saveSettings = useCallback(async () => {
     if (enabled && !proxyUrl.trim()) {
-      toast.error("启用代理时必须填写代理地址")
+      toast.error(t("proxyRequired"))
       return
     }
 
@@ -87,14 +143,34 @@ export function SystemNetworkSettings() {
       })
       setEnabled(next.enabled)
       setProxyUrl(next.proxy_url ?? "")
-      toast.success("系统代理设置已保存")
+      toast.success(t("saveSuccess"))
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      toast.error(`保存失败：${message}`)
+      toast.error(t("saveFailed", { message }))
     } finally {
       setSaving(false)
     }
-  }, [enabled, proxyUrl])
+  }, [enabled, proxyUrl, t])
+
+  const saveLanguage = useCallback(async () => {
+    setSavingLanguage(true)
+
+    try {
+      const next = await updateSystemLanguageSettings({
+        mode: appLanguage === "system" ? "system" : "manual",
+        language:
+          appLanguage === "system" ? languageSettings.language : appLanguage,
+      })
+
+      setLanguageSettings(next)
+      toast.success(t("languageSaveSuccess"))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      toast.error(t("languageSaveFailed", { message }))
+    } finally {
+      setSavingLanguage(false)
+    }
+  }, [appLanguage, languageSettings.language, setLanguageSettings, t])
 
   const checkForUpdates = useCallback(async () => {
     setCheckingUpdate(true)
@@ -108,10 +184,10 @@ export function SystemNetworkSettings() {
 
       if (result.update) {
         setAvailableUpdate(result.update)
-        toast.success(`发现新版本 v${result.update.version}`)
+        toast.success(t("foundUpdate", { version: result.update.version }))
       } else {
         setAvailableUpdate(null)
-        toast.success("当前已经是最新版本")
+        toast.success(t("alreadyLatest"))
       }
 
       if (previousUpdate && previousUpdate !== result.update) {
@@ -120,11 +196,11 @@ export function SystemNetworkSettings() {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       setUpdateError(message)
-      toast.error(`检查更新失败：${message}`)
+      toast.error(t("checkUpdateFailed", { message }))
     } finally {
       setCheckingUpdate(false)
     }
-  }, [availableUpdate])
+  }, [availableUpdate, t])
 
   const installUpdate = useCallback(async () => {
     if (!availableUpdate) return
@@ -134,22 +210,22 @@ export function SystemNetworkSettings() {
 
     try {
       await installAppUpdate(availableUpdate)
-      toast.success("升级包已安装，正在重启应用")
+      toast.success(t("installSuccess"))
       await relaunchApp()
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       setUpdateError(message)
-      toast.error(`升级失败：${message}`)
+      toast.error(t("installFailed", { message }))
     } finally {
       setInstallingUpdate(false)
     }
-  }, [availableUpdate])
+  }, [availableUpdate, t])
 
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center text-sm text-muted-foreground gap-2">
         <Loader2 className="h-4 w-4 animate-spin" />
-        加载中...
+        {t("loading")}
       </div>
     )
   }
@@ -158,26 +234,25 @@ export function SystemNetworkSettings() {
     <div className="h-full overflow-auto">
       <div className="w-full space-y-4">
         <section className="space-y-1">
-          <h1 className="text-sm font-semibold">系统管理</h1>
+          <h1 className="text-sm font-semibold">{t("sectionTitle")}</h1>
           <p className="text-xs text-muted-foreground">
-            管理网络代理和应用版本升级。
+            {t("sectionDescription")}
           </p>
         </section>
 
         <section className="rounded-xl border bg-card p-4 space-y-4">
           <div className="flex items-center gap-2">
             <Wifi className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold">网络代理</h2>
+            <h2 className="text-sm font-semibold">{t("proxyTitle")}</h2>
           </div>
 
           <p className="text-xs text-muted-foreground leading-5">
-            开启后，后续网络请求将优先走该代理（包括 ACP 对话、Agent 安装、 Git
-            远程操作等）。
+            {t("proxyDescription")}
           </p>
 
           {loadError && (
             <div className="rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2 text-xs text-red-400">
-              加载失败：{loadError}
+              {t("loadFailed", { message: loadError })}
             </div>
           )}
 
@@ -187,12 +262,12 @@ export function SystemNetworkSettings() {
               checked={enabled}
               onChange={(event) => setEnabled(event.target.checked)}
             />
-            启用系统代理
+            {t("enableProxy")}
           </label>
 
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">
-              代理地址
+              {t("proxyAddress")}
             </label>
             <Input
               value={proxyUrl}
@@ -200,8 +275,7 @@ export function SystemNetworkSettings() {
               placeholder={PROXY_EXAMPLE}
             />
             <p className="text-[11px] text-muted-foreground">
-              支持 http(s)/socks5，示例：{PROXY_EXAMPLE}
-              。仅在启用系统代理时生效。
+              {t("proxyHint", { example: PROXY_EXAMPLE })}
             </p>
           </div>
 
@@ -210,12 +284,69 @@ export function SystemNetworkSettings() {
               {saving ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  保存中...
+                  {t("saving")}
                 </>
               ) : (
                 <>
                   <Save className="h-3.5 w-3.5" />
-                  保存
+                  {t("save")}
+                </>
+              )}
+            </Button>
+          </div>
+        </section>
+
+        <section className="rounded-xl border bg-card p-4 space-y-4">
+          <div className="flex items-center gap-2">
+            <Languages className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold">{t("languageTitle")}</h2>
+          </div>
+
+          <p className="text-xs text-muted-foreground leading-5">
+            {t("languageDescription")}
+          </p>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground">
+              {t("appLanguage")}
+            </label>
+            <Select
+              value={appLanguage}
+              onValueChange={(value) => {
+                if (value === "system") {
+                  setAppLanguage("system")
+                  return
+                }
+                if (!isAppLocale(value)) return
+                setAppLanguage(value)
+              }}
+              disabled={savingLanguage || !languageSettingsLoaded}
+            >
+              <SelectTrigger className="w-full sm:w-56">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="start">
+                <SelectItem value="system">
+                  {tLanguage("followSystem")}
+                </SelectItem>
+                <SelectItem value="en">{languageLabels.en}</SelectItem>
+                <SelectItem value="zh_cn">{languageLabels.zh_cn}</SelectItem>
+                <SelectItem value="zh_tw">{languageLabels.zh_tw}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex justify-end">
+            <Button size="sm" onClick={saveLanguage} disabled={savingLanguage}>
+              {savingLanguage ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {t("saving")}
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5" />
+                  {t("save")}
                 </>
               )}
             </Button>
@@ -225,37 +356,39 @@ export function SystemNetworkSettings() {
         <section className="rounded-xl border bg-card p-4 space-y-4">
           <div className="flex items-center gap-2">
             <RefreshCw className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold">应用升级</h2>
+            <h2 className="text-sm font-semibold">{t("updateTitle")}</h2>
           </div>
 
           <p className="text-xs text-muted-foreground leading-5">
-            点击检查后会从配置的发布源拉取最新版本信息，有新版本时可直接下载并安装。
+            {t("updateDescription")}
           </p>
 
           <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
             <div className="rounded-md border bg-muted/20 px-3 py-2">
-              <div className="text-muted-foreground">当前版本</div>
+              <div className="text-muted-foreground">{t("currentVersion")}</div>
               <div className="mt-1 font-medium">
                 {currentVersion ? `v${currentVersion}` : "-"}
               </div>
             </div>
             <div className="rounded-md border bg-muted/20 px-3 py-2">
-              <div className="text-muted-foreground">可升级版本</div>
+              <div className="text-muted-foreground">
+                {t("upgradableVersion")}
+              </div>
               <div className="mt-1 font-medium">
-                {availableUpdate ? `v${availableUpdate.version}` : "暂无"}
+                {availableUpdate ? `v${availableUpdate.version}` : t("none")}
               </div>
             </div>
           </div>
 
-          {lastCheckedAt && (
+          {formattedLastCheckedAt && (
             <p className="text-[11px] text-muted-foreground">
-              上次检查：{lastCheckedAt.toLocaleString()}
+              {t("lastChecked", { time: formattedLastCheckedAt })}
             </p>
           )}
 
           {updateError && (
             <div className="rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2 text-xs text-red-400">
-              更新异常：{updateError}
+              {t("updateError", { message: updateError })}
             </div>
           )}
 
@@ -269,12 +402,12 @@ export function SystemNetworkSettings() {
               {checkingUpdate ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  检查中...
+                  {t("checking")}
                 </>
               ) : (
                 <>
                   <RefreshCw className="h-3.5 w-3.5" />
-                  检查更新
+                  {t("checkUpdate")}
                 </>
               )}
             </Button>
@@ -288,12 +421,12 @@ export function SystemNetworkSettings() {
                 {installingUpdate ? (
                   <>
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    升级中...
+                    {t("updating")}
                   </>
                 ) : (
                   <>
                     <ArrowUpCircle className="h-3.5 w-3.5" />
-                    升级到 v{availableUpdate.version}
+                    {t("upgradeTo", { version: availableUpdate.version })}
                   </>
                 )}
               </Button>

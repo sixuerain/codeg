@@ -34,6 +34,7 @@ import type {
   FileEditContent,
   FileSaveResult,
   GitLogEntry,
+  SystemLanguageSettings,
   SystemProxySettings,
   McpAppType,
   LocalMcpServer,
@@ -275,6 +276,16 @@ export async function updateSystemProxySettings(
   settings: SystemProxySettings
 ): Promise<SystemProxySettings> {
   return invoke("update_system_proxy_settings", { settings })
+}
+
+export async function getSystemLanguageSettings(): Promise<SystemLanguageSettings> {
+  return invoke("get_system_language_settings")
+}
+
+export async function updateSystemLanguageSettings(
+  settings: SystemLanguageSettings
+): Promise<SystemLanguageSettings> {
+  return invoke("update_system_language_settings", { settings })
 }
 
 export async function mcpScanLocal(): Promise<LocalMcpServer[]> {

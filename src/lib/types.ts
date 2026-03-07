@@ -490,6 +490,14 @@ export interface SystemProxySettings {
   proxy_url: string | null
 }
 
+export type AppLocale = "en" | "zh_cn" | "zh_tw"
+export type LanguageMode = "system" | "manual"
+
+export interface SystemLanguageSettings {
+  mode: LanguageMode
+  language: AppLocale
+}
+
 export type McpAppType = "claude_code" | "codex" | "open_code"
 
 export interface LocalMcpServer {

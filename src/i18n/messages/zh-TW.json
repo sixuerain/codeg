@@ -1,0 +1,75 @@
+{
+  "Language": {
+    "followSystem": "跟隨系統",
+    "english": "English",
+    "simplifiedChinese": "简体中文",
+    "traditionalChinese": "繁體中文"
+  },
+  "SettingsShell": {
+    "title": "設定",
+    "preferences": "偏好設定",
+    "nav": {
+      "appearance": "外觀",
+      "agents": "Agents",
+      "mcp": "MCP",
+      "skills": "Skills",
+      "shortcuts": "快捷鍵",
+      "system": "系統"
+    }
+  },
+  "AppearanceSettings": {
+    "sectionTitle": "主題外觀",
+    "sectionDescription": "選擇淺色、深色或跟隨系統主題，設定會自動儲存。",
+    "themeMode": "主題模式",
+    "placeholder": "請選擇主題模式",
+    "system": "跟隨系統",
+    "light": "淺色",
+    "dark": "深色",
+    "currentTheme": "目前生效主題：{theme}",
+    "resolvedTheme": {
+      "light": "淺色",
+      "dark": "深色",
+      "unknown": "--"
+    }
+  },
+  "SystemSettings": {
+    "loading": "載入中...",
+    "sectionTitle": "系統管理",
+    "sectionDescription": "管理網路代理、應用升級與語言偏好。",
+    "proxyTitle": "網路代理",
+    "proxyDescription": "啟用後，後續網路請求將優先走該代理（包含 ACP 對話、Agent 安裝、Git 遠端操作等）。",
+    "loadFailed": "載入失敗：{message}",
+    "enableProxy": "啟用系統代理",
+    "proxyAddress": "代理位址",
+    "proxyHint": "支援 http(s)/socks5，範例：{example}。僅在啟用系統代理時生效。",
+    "save": "儲存",
+    "saving": "儲存中...",
+    "proxyRequired": "啟用代理時必須填寫代理位址",
+    "saveSuccess": "系統代理設定已儲存",
+    "saveFailed": "儲存失敗：{message}",
+    "languageTitle": "語言",
+    "languageDescription": "設定應用語言。跟隨系統時，若系統語言不受支援將回退為英文。",
+    "appLanguage": "應用語言",
+    "languageSaveSuccess": "語言設定已儲存",
+    "languageSaveFailed": "語言設定儲存失敗：{message}",
+    "updateTitle": "應用升級",
+    "updateDescription": "點擊檢查後會從設定的發佈來源拉取最新版本資訊，有新版本時可直接下載並安裝。",
+    "currentVersion": "目前版本",
+    "upgradableVersion": "可升級版本",
+    "none": "暫無",
+    "lastChecked": "上次檢查：{time}",
+    "updateError": "更新異常：{message}",
+    "checking": "檢查中...",
+    "checkUpdate": "檢查更新",
+    "updating": "升級中...",
+    "upgradeTo": "升級到 v{version}",
+    "foundUpdate": "發現新版本 v{version}",
+    "alreadyLatest": "目前已是最新版本",
+    "checkUpdateFailed": "檢查更新失敗：{message}",
+    "installSuccess": "升級包已安裝，正在重新啟動應用",
+    "installFailed": "升級失敗：{message}"
+  },
+  "SettingsPages": {
+    "agentsLoading": "載入 Agent 設定中..."
+  }
+}

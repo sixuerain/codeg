@@ -1,0 +1,75 @@
+{
+  "Language": {
+    "followSystem": "Follow System",
+    "english": "English",
+    "simplifiedChinese": "Simplified Chinese",
+    "traditionalChinese": "Traditional Chinese"
+  },
+  "SettingsShell": {
+    "title": "Settings",
+    "preferences": "Preferences",
+    "nav": {
+      "appearance": "Appearance",
+      "agents": "Agents",
+      "mcp": "MCP",
+      "skills": "Skills",
+      "shortcuts": "Shortcuts",
+      "system": "System"
+    }
+  },
+  "AppearanceSettings": {
+    "sectionTitle": "Theme Appearance",
+    "sectionDescription": "Choose light, dark, or follow system. Settings are saved automatically.",
+    "themeMode": "Theme mode",
+    "placeholder": "Select theme mode",
+    "system": "Follow system",
+    "light": "Light",
+    "dark": "Dark",
+    "currentTheme": "Current effective theme: {theme}",
+    "resolvedTheme": {
+      "light": "Light",
+      "dark": "Dark",
+      "unknown": "--"
+    }
+  },
+  "SystemSettings": {
+    "loading": "Loading...",
+    "sectionTitle": "System Management",
+    "sectionDescription": "Manage network proxy, app updates and language preferences.",
+    "proxyTitle": "Network Proxy",
+    "proxyDescription": "When enabled, subsequent network requests prefer this proxy (including ACP chat, agent installation and Git remote operations).",
+    "loadFailed": "Load failed: {message}",
+    "enableProxy": "Enable system proxy",
+    "proxyAddress": "Proxy address",
+    "proxyHint": "Supports http(s)/socks5, example: {example}. Only effective when system proxy is enabled.",
+    "save": "Save",
+    "saving": "Saving...",
+    "proxyRequired": "Proxy URL is required when proxy is enabled",
+    "saveSuccess": "System proxy settings saved",
+    "saveFailed": "Save failed: {message}",
+    "languageTitle": "Language",
+    "languageDescription": "Set app language. When following system locale, unsupported languages fall back to English.",
+    "appLanguage": "App language",
+    "languageSaveSuccess": "Language settings saved",
+    "languageSaveFailed": "Failed to save language settings: {message}",
+    "updateTitle": "App Update",
+    "updateDescription": "Check the configured release source for newer versions and install directly when available.",
+    "currentVersion": "Current version",
+    "upgradableVersion": "Available version",
+    "none": "None",
+    "lastChecked": "Last checked: {time}",
+    "updateError": "Update error: {message}",
+    "checking": "Checking...",
+    "checkUpdate": "Check for updates",
+    "updating": "Installing...",
+    "upgradeTo": "Upgrade to v{version}",
+    "foundUpdate": "New version v{version} found",
+    "alreadyLatest": "You're on the latest version",
+    "checkUpdateFailed": "Failed to check for updates: {message}",
+    "installSuccess": "Update installed. Relaunching app.",
+    "installFailed": "Update failed: {message}"
+  },
+  "SettingsPages": {
+    "agentsLoading": "Loading agent settings..."
+  }
+}

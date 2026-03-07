@@ -3,10 +3,11 @@ use tauri::State;
 
 use crate::db::service::app_metadata_service;
 use crate::db::AppDatabase;
-use crate::models::SystemProxySettings;
+use crate::models::{SystemLanguageSettings, SystemProxySettings};
 use crate::network::proxy;
 
 const SYSTEM_PROXY_SETTINGS_KEY: &str = "system_proxy_settings";
+const SYSTEM_LANGUAGE_SETTINGS_KEY: &str = "system_language_settings";
 
 fn normalize_proxy_settings(settings: SystemProxySettings) -> Result<SystemProxySettings, String> {
     if !settings.enabled {
@@ -54,6 +55,21 @@ pub(crate) async fn load_system_proxy_settings(
     normalize_proxy_settings(parsed)
 }
 
+pub(crate) async fn load_system_language_settings(
+    conn: &DatabaseConnection,
+) -> Result<SystemLanguageSettings, String> {
+    let raw = app_metadata_service::get_value(conn, SYSTEM_LANGUAGE_SETTINGS_KEY)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let Some(raw) = raw else {
+        return Ok(SystemLanguageSettings::default());
+    };
+
+    serde_json::from_str::<SystemLanguageSettings>(&raw)
+        .map_err(|e| format!("failed to parse stored language settings: {e}"))
+}
+
 #[tauri::command]
 pub async fn get_system_proxy_settings(
     db: State<'_, AppDatabase>,
@@ -75,4 +91,25 @@ pub async fn update_system_proxy_settings(
 
     proxy::apply_system_proxy_settings(&normalized)?;
     Ok(normalized)
+}
+
+#[tauri::command]
+pub async fn get_system_language_settings(
+    db: State<'_, AppDatabase>,
+) -> Result<SystemLanguageSettings, String> {
+    load_system_language_settings(&db.conn).await
+}
+
+#[tauri::command]
+pub async fn update_system_language_settings(
+    settings: SystemLanguageSettings,
+    db: State<'_, AppDatabase>,
+) -> Result<SystemLanguageSettings, String> {
+    let serialized = serde_json::to_string(&settings).map_err(|e| e.to_string())?;
+
+    app_metadata_service::upsert_value(&db.conn, SYSTEM_LANGUAGE_SETTINGS_KEY, &serialized)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(settings)
 }

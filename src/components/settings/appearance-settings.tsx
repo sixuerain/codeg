@@ -1,6 +1,7 @@
 "use client"
 
 import { Monitor, Moon, Sun } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useTheme } from "next-themes"
 import {
   Select,
@@ -13,13 +14,14 @@ import {
 type ThemeMode = "system" | "light" | "dark"
 
 export function AppearanceSettings() {
+  const t = useTranslations("AppearanceSettings")
   const { theme, resolvedTheme, setTheme } = useTheme()
   const resolvedThemeLabel =
     resolvedTheme === "dark"
-      ? "深色"
+      ? t("resolvedTheme.dark")
       : resolvedTheme === "light"
-        ? "浅色"
-        : "--"
+        ? t("resolvedTheme.light")
+        : t("resolvedTheme.unknown")
 
   return (
     <div className="h-full overflow-auto">
@@ -27,41 +29,41 @@ export function AppearanceSettings() {
         <section className="rounded-xl border bg-card p-4 space-y-4">
           <div className="flex items-center gap-2">
             <Sun className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold">主题外观</h2>
+            <h2 className="text-sm font-semibold">{t("sectionTitle")}</h2>
           </div>
 
           <p className="text-xs text-muted-foreground leading-5">
-            选择浅色、深色或跟随系统主题，设置会自动保存。
+            {t("sectionDescription")}
           </p>
 
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground">
-              主题模式
+              {t("themeMode")}
             </label>
             <Select
               value={theme ?? "system"}
               onValueChange={(value) => setTheme(value as ThemeMode)}
             >
               <SelectTrigger className="w-56">
-                <SelectValue placeholder="请选择主题模式" />
+                <SelectValue placeholder={t("placeholder")} />
               </SelectTrigger>
               <SelectContent align="start">
                 <SelectItem value="system">
                   <span className="inline-flex items-center gap-2">
                     <Monitor className="h-3.5 w-3.5" />
-                    跟随系统
+                    {t("system")}
                   </span>
                 </SelectItem>
                 <SelectItem value="light">
                   <span className="inline-flex items-center gap-2">
                     <Sun className="h-3.5 w-3.5" />
-                    浅色
+                    {t("light")}
                   </span>
                 </SelectItem>
                 <SelectItem value="dark">
                   <span className="inline-flex items-center gap-2">
                     <Moon className="h-3.5 w-3.5" />
-                    深色
+                    {t("dark")}
                   </span>
                 </SelectItem>
               </SelectContent>
@@ -70,7 +72,7 @@ export function AppearanceSettings() {
               className="text-[11px] text-muted-foreground"
               suppressHydrationWarning
             >
-              当前生效主题：{resolvedThemeLabel}
+              {t("currentTheme", { theme: resolvedThemeLabel })}
             </p>
           </div>
         </section>
