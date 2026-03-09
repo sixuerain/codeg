@@ -97,7 +97,7 @@ pub fn run() {
             {
                 let app = window.app_handle();
                 if let Some(state) = app.try_state::<windows::SettingsWindowState>() {
-                    windows::restore_windows_after_settings(&app, &state);
+                    windows::restore_windows_after_settings(app, &state);
                 }
             }
 
@@ -109,7 +109,7 @@ pub fn run() {
             {
                 let app = window.app_handle();
                 if let Some(state) = app.try_state::<windows::CommitWindowState>() {
-                    windows::restore_window_after_commit(&app, &state, &label);
+                    windows::restore_window_after_commit(app, &state, &label);
                 }
             }
 

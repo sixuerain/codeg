@@ -101,7 +101,7 @@ impl GeminiParser {
         let projects = value.get("projects")?.as_object()?;
         projects
             .iter()
-            .find_map(|(path, mapped_alias)| (mapped_alias.as_str() == Some(alias)).then(|| path))
+            .find_map(|(path, mapped_alias)| (mapped_alias.as_str() == Some(alias)).then_some(path))
             .map(|s| s.to_string())
     }
 

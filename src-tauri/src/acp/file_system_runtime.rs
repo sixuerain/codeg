@@ -23,7 +23,7 @@ pub enum FileSystemRuntimeError {
 }
 
 impl FileSystemRuntimeError {
-    pub fn to_rpc_error(self) -> sacp::Error {
+    pub fn into_rpc_error(self) -> sacp::Error {
         match self {
             Self::InvalidParams(message) => sacp::Error::invalid_params().data(message),
             Self::Internal(message) => sacp::util::internal_error(message),

@@ -8,17 +8,16 @@ use sacp::schema::{
     CreateTerminalRequest, CreateTerminalResponse, EmbeddedResource, EmbeddedResourceResource,
     FileSystemCapability, ImageContent, InitializeRequest, KillTerminalCommandRequest,
     KillTerminalCommandResponse, LoadSessionRequest, NewSessionRequest, NewSessionResponse,
-    PermissionOptionKind, Plan, PlanEntryPriority, PlanEntryStatus, PromptRequest,
-    ProtocolVersion, ReadTextFileRequest, ReadTextFileResponse, ReleaseTerminalRequest,
-    ReleaseTerminalResponse, RequestPermissionOutcome, RequestPermissionRequest,
-    RequestPermissionResponse, ResourceLink, SelectedPermissionOutcome, SessionConfigKind,
-    SessionConfigOption, SessionConfigOptionCategory, SessionConfigSelectGroup,
-    SessionConfigSelectOption, SessionConfigSelectOptions, SessionId, SessionModeState,
-    SessionNotification, SessionUpdate, SetSessionConfigOptionRequest,
+    PermissionOptionKind, Plan, PlanEntryPriority, PlanEntryStatus, PromptRequest, ProtocolVersion,
+    ReadTextFileRequest, ReadTextFileResponse, ReleaseTerminalRequest, ReleaseTerminalResponse,
+    RequestPermissionOutcome, RequestPermissionRequest, RequestPermissionResponse, ResourceLink,
+    SelectedPermissionOutcome, SessionConfigKind, SessionConfigOption, SessionConfigOptionCategory,
+    SessionConfigSelectGroup, SessionConfigSelectOption, SessionConfigSelectOptions, SessionId,
+    SessionModeState, SessionNotification, SessionUpdate, SetSessionConfigOptionRequest,
     SetSessionConfigOptionResponse, SetSessionModeRequest, StopReason, TerminalExitStatus,
     TerminalOutputRequest, TerminalOutputResponse, TextContent, TextResourceContents,
-    ToolCallContent, WaitForTerminalExitRequest, WaitForTerminalExitResponse,
-    WriteTextFileRequest, WriteTextFileResponse,
+    ToolCallContent, WaitForTerminalExitRequest, WaitForTerminalExitResponse, WriteTextFileRequest,
+    WriteTextFileResponse,
 };
 use sacp::util::MatchDispatch;
 use sacp::{
@@ -790,7 +789,7 @@ fn respond_terminal_request<T: sacp::JsonRpcResponse>(
 ) -> Result<(), sacp::Error> {
     match result {
         Ok(response) => responder.respond(response),
-        Err(error) => responder.respond_with_error(error.to_rpc_error()),
+        Err(error) => responder.respond_with_error(error.into_rpc_error()),
     }
 }
 
@@ -800,7 +799,7 @@ fn respond_file_system_request<T: sacp::JsonRpcResponse>(
 ) -> Result<(), sacp::Error> {
     match result {
         Ok(response) => responder.respond(response),
-        Err(error) => responder.respond_with_error(error.to_rpc_error()),
+        Err(error) => responder.respond_with_error(error.into_rpc_error()),
     }
 }
 
@@ -1176,7 +1175,8 @@ fn map_prompt_blocks(blocks: Vec<PromptInputBlock>) -> Vec<ContentBlock> {
                         EmbeddedResourceResource::BlobResourceContents(content)
                     }
                     (None, None) => {
-                        let content = TextResourceContents::new("", uri.clone()).mime_type(mime_type);
+                        let content =
+                            TextResourceContents::new("", uri.clone()).mime_type(mime_type);
                         EmbeddedResourceResource::TextResourceContents(content)
                     }
                 };

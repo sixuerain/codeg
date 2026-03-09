@@ -1126,7 +1126,7 @@ fn list_skills_from_dir(
             }
             by_id.insert(
                 id.clone(),
-                build_skill_item(id, scope.clone(), AgentSkillLayout::SkillDirectory, path),
+                build_skill_item(id, scope, AgentSkillLayout::SkillDirectory, path),
             );
             continue;
         }
@@ -1145,7 +1145,7 @@ fn list_skills_from_dir(
             }
             by_id.insert(
                 stem.clone(),
-                build_skill_item(stem, scope.clone(), AgentSkillLayout::MarkdownFile, path),
+                build_skill_item(stem, scope, AgentSkillLayout::MarkdownFile, path),
             );
         }
     }
@@ -1167,7 +1167,7 @@ fn locate_existing_skill(
         if skill_dir.is_dir() && skill_dir.join("SKILL.md").is_file() {
             return Some(build_skill_item(
                 skill_id.to_string(),
-                scope.clone(),
+                scope,
                 AgentSkillLayout::SkillDirectory,
                 skill_dir,
             ));
@@ -1542,6 +1542,7 @@ pub async fn acp_clear_binary_cache(agent_type: AgentType) -> Result<(), AcpErro
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub async fn acp_update_agent_preferences(
     agent_type: AgentType,
     enabled: bool,
@@ -1923,8 +1924,8 @@ pub async fn acp_list_agent_skills(
 
     let mut skills = skills_by_key.into_values().collect::<Vec<_>>();
     skills.sort_by(|a, b| {
-        scope_rank(a.scope.clone())
-            .cmp(&scope_rank(b.scope.clone()))
+        scope_rank(a.scope)
+            .cmp(&scope_rank(b.scope))
             .then_with(|| a.name.cmp(&b.name))
     });
 
@@ -1953,7 +1954,7 @@ pub async fn acp_read_agent_skill(
 
     let skill = locate_existing_skill_across_dirs(&dirs, spec.kind, &id, scope)
         .ok_or_else(|| AcpError::protocol(format!("skill not found: {id}")))?;
-    let content_path = skill_content_path(skill.layout.clone(), Path::new(&skill.path));
+    let content_path = skill_content_path(skill.layout, Path::new(&skill.path));
     let content = fs::read_to_string(&content_path)
         .map_err(|e| AcpError::protocol(format!("failed to read skill content: {e}")))?;
     Ok(AgentSkillContent { skill, content })
@@ -1998,7 +1999,7 @@ pub async fn acp_save_agent_skill(
     };
 
     let skill_path = PathBuf::from(&skill.path);
-    let content_path = skill_content_path(skill.layout.clone(), &skill_path);
+    let content_path = skill_content_path(skill.layout, &skill_path);
 
     if skill.layout == AgentSkillLayout::SkillDirectory {
         fs::create_dir_all(&skill_path).map_err(|e| {

@@ -194,7 +194,7 @@ async fn reorder_once(conn: &DatabaseConnection, agent_types: &[AgentType]) -> R
             }
             let mut active = model.into_active_model();
             active.sort_order = Set(index as i32);
-            active.updated_at = Set(now.clone());
+            active.updated_at = Set(now);
             active.update(conn).await?;
         }
     }

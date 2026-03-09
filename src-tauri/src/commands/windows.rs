@@ -29,9 +29,9 @@ where
 {
     #[cfg(target_os = "macos")]
     {
-        return builder
+        builder
             .hidden_title(true)
-            .title_bar_style(tauri::TitleBarStyle::Overlay);
+            .title_bar_style(tauri::TitleBarStyle::Overlay)
     }
 
     #[cfg(target_os = "windows")]
@@ -216,9 +216,9 @@ pub async fn open_folder_window(
     if let Some(existing) = app.get_webview_window(&label) {
         ensure_windows_undecorated(&existing);
         let _ = existing.unminimize();
-        existing.set_focus().map_err(|e| {
-            AppCommandError::window("Failed to focus folder window", e.to_string())
-        })?;
+        existing
+            .set_focus()
+            .map_err(|e| AppCommandError::window("Failed to focus folder window", e.to_string()))?;
         if let Some(w) = app.get_webview_window("welcome") {
             let _ = w.close();
         }
@@ -279,7 +279,7 @@ pub async fn open_commit_window(
 
     let url = WebviewUrl::App(format!("commit?folderId={folder_id}").into());
     let builder = WebviewWindowBuilder::new(&app, &label, url)
-        .title(&format!("提交代码 - {}", folder.name))
+        .title(format!("提交代码 - {}", folder.name))
         .inner_size(1220.0, 820.0)
         .min_inner_size(980.0, 620.0)
         .always_on_top(true)

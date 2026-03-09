@@ -246,16 +246,21 @@ fn value_to_preview(value: Option<&serde_json::Value>) -> Option<String> {
 }
 
 fn is_failed_status(status: &str) -> bool {
-    matches!(
-        status.to_ascii_lowercase().as_str(),
-        "error" | "failed" | "failure" | "cancelled" | "canceled"
-    )
+    let status = status.trim();
+    status.eq_ignore_ascii_case("error")
+        || status.eq_ignore_ascii_case("failed")
+        || status.eq_ignore_ascii_case("failure")
+        || status.eq_ignore_ascii_case("cancelled")
+        || status.eq_ignore_ascii_case("canceled")
 }
 
 fn parse_nonzero_exit_code_from_line(line: &str) -> Option<i64> {
-    let lower = line.trim().to_ascii_lowercase();
-    let rest = lower.strip_prefix("exit code:")?;
-    let number_text = rest.trim().split_whitespace().next()?;
+    let trimmed = line.trim();
+    let (label, rest) = trimmed.split_once(':')?;
+    if !label.trim_end().eq_ignore_ascii_case("exit code") {
+        return None;
+    }
+    let number_text = rest.split_whitespace().next()?;
     let code = number_text.parse::<i64>().ok()?;
     if code == 0 {
         None
@@ -298,7 +303,9 @@ fn infer_output_text_is_error(text: &str) -> bool {
         return true;
     }
 
-    trimmed.to_ascii_lowercase().starts_with("error:")
+    trimmed
+        .get(..6)
+        .is_some_and(|prefix| prefix.eq_ignore_ascii_case("error:"))
 }
 
 fn infer_output_value_is_error(value: &serde_json::Value, depth: usize) -> bool {

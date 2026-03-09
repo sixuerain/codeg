@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 use std::time::Duration;
 
 use serde::de::DeserializeOwned;
@@ -11,6 +12,14 @@ use crate::app_error::AppCommandError;
 
 const MARKETPLACE_OFFICIAL: &str = "official_registry";
 const MARKETPLACE_SMITHERY: &str = "smithery";
+static MARKETPLACE_HTTP_CLIENT: LazyLock<Result<reqwest::Client, String>> = LazyLock::new(|| {
+    reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(8))
+        .timeout(Duration::from_secs(20))
+        .user_agent("codeg-mcp-market/1.0")
+        .build()
+        .map_err(|e| format!("failed to initialize marketplace HTTP client: {e}"))
+});
 
 fn mcp_invalid_input(message: impl Into<String>) -> AppCommandError {
     AppCommandError::invalid_input(message)
@@ -588,11 +597,9 @@ fn write_codex_root_toml(root: &toml::Value) -> Result<(), AppCommandError> {
 }
 
 fn obj_as_string_map(value: Option<&Value>) -> Option<Map<String, Value>> {
-    let Some(obj) = value.and_then(Value::as_object) else {
-        return None;
-    };
+    let obj = value.and_then(Value::as_object)?;
 
-    let mut output = Map::new();
+    let mut output = Map::with_capacity(obj.len());
     for (key, item) in obj {
         let Some(s) = item.as_str() else {
             continue;
@@ -616,12 +623,10 @@ fn contains_unresolved_placeholder(value: &str) -> bool {
 }
 
 fn marketplace_http_client() -> Result<reqwest::Client, AppCommandError> {
-    reqwest::Client::builder()
-        .connect_timeout(Duration::from_secs(8))
-        .timeout(Duration::from_secs(20))
-        .user_agent("codeg-mcp-market/1.0")
-        .build()
-        .map_err(|e| mcp_network(format!("failed to initialize marketplace HTTP client: {e}")))
+    match &*MARKETPLACE_HTTP_CLIENT {
+        Ok(client) => Ok(client.clone()),
+        Err(err) => Err(mcp_network(err.clone())),
+    }
 }
 
 fn should_retry_http_status(status: reqwest::StatusCode) -> bool {
@@ -1000,11 +1005,9 @@ fn json_to_toml_value(value: &Value) -> Option<toml::Value> {
         }
         Value::String(v) => Some(toml::Value::String(v.clone())),
         Value::Array(values) => {
-            let mut converted = Vec::new();
+            let mut converted = Vec::with_capacity(values.len());
             for item in values {
-                let Some(next) = json_to_toml_value(item) else {
-                    return None;
-                };
+                let next = json_to_toml_value(item)?;
                 converted.push(next);
             }
             Some(toml::Value::Array(converted))
