@@ -137,7 +137,7 @@ const ConversationTabView = memo(function ConversationTabView({
   const tWelcome = useTranslations("Folder.chat.welcomeInputPanel")
   const sharedT = useTranslations("Folder.chat.shared")
   const { folder, folderId, refreshConversations } = useFolderContext()
-  const { bindConversationTab } = useTabContext()
+  const { bindConversationTab, setTabRuntimeConversationId } = useTabContext()
   const { setSessionStats } = useSessionStats()
   const {
     appendOptimisticTurn,
@@ -176,6 +176,19 @@ const ConversationTabView = memo(function ConversationTabView({
   const hasPersistedConversation = dbConversationId != null
   const canAutoConnect =
     hasPersistedConversation || (agentsLoaded && usableAgentCount > 0)
+
+  // Expose the runtime session key to the tab so the aux panel (Diff sidebar)
+  // can look up live turns even before the DB conversation is created.
+  useEffect(() => {
+    if (effectiveConversationId !== conversationId) {
+      setTabRuntimeConversationId(tabId, effectiveConversationId)
+    }
+  }, [
+    tabId,
+    effectiveConversationId,
+    conversationId,
+    setTabRuntimeConversationId,
+  ])
 
   // Clear pendingCleanup when tab is (re)opened
   useEffect(() => {
@@ -544,7 +557,13 @@ const ConversationTabView = memo(function ConversationTabView({
           }
 
           setCreatedConversationId(newConversationId)
-          bindConversationTab(tabId, newConversationId, selectedAgent, title)
+          bindConversationTab(
+            tabId,
+            newConversationId,
+            selectedAgent,
+            title,
+            effectiveConversationId
+          )
           moveMessageInputDraft(
             buildNewConversationDraftStorageKey({ folderId }),
             buildConversationDraftStorageKey(selectedAgent, newConversationId)

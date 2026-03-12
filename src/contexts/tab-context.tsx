@@ -24,6 +24,10 @@ interface TabItemInternal {
   id: string
   kind: "conversation"
   conversationId: number | null
+  /** The runtime session key used by ConversationRuntimeContext.
+   *  For new conversations this is a virtual (negative) ID that differs
+   *  from the persisted `conversationId`. */
+  runtimeConversationId?: number
   agentType: AgentType
   title: string
   isPinned: boolean
@@ -55,7 +59,12 @@ interface TabContextValue {
     tabId: string,
     conversationId: number,
     agentType: AgentType,
-    title: string
+    title: string,
+    runtimeConversationId?: number
+  ) => void
+  setTabRuntimeConversationId: (
+    tabId: string,
+    runtimeConversationId: number
   ) => void
   reorderTabs: (reorderedTabs: TabItem[]) => void
 }
@@ -558,13 +567,20 @@ export function TabProvider({ children }: TabProviderProps) {
       tabId: string,
       conversationId: number,
       agentType: AgentType,
-      title: string
+      title: string,
+      runtimeConversationId?: number
     ) => {
       let nextActiveTabId: string | null = null
       setTabs((prev) =>
         prev.flatMap((tab) => {
           if (tab.id === tabId) {
-            const nextTab = { ...tab, conversationId, agentType, title }
+            const nextTab = {
+              ...tab,
+              conversationId,
+              agentType,
+              title,
+              runtimeConversationId,
+            }
             return [nextTab]
           }
 
@@ -594,6 +610,17 @@ export function TabProvider({ children }: TabProviderProps) {
     [syncFolderContext]
   )
 
+  const setTabRuntimeConversationId = useCallback(
+    (tabId: string, runtimeConversationId: number) => {
+      setTabs((prev) =>
+        prev.map((tab) =>
+          tab.id === tabId ? { ...tab, runtimeConversationId } : tab
+        )
+      )
+    },
+    []
+  )
+
   const value = useMemo(
     () => ({
       tabs,
@@ -609,6 +636,7 @@ export function TabProvider({ children }: TabProviderProps) {
       toggleTileMode,
       openNewConversationTab,
       bindConversationTab,
+      setTabRuntimeConversationId,
       reorderTabs,
     }),
     [
@@ -625,6 +653,7 @@ export function TabProvider({ children }: TabProviderProps) {
       toggleTileMode,
       openNewConversationTab,
       bindConversationTab,
+      setTabRuntimeConversationId,
       reorderTabs,
     ]
   )

@@ -265,7 +265,8 @@ export function SessionFilesTab() {
   const { tabs, activeTabId } = useTabContext()
 
   const activeTab = tabs.find((t) => t.id === activeTabId)
-  const conversationId = activeTab?.conversationId
+  const conversationId =
+    activeTab?.runtimeConversationId ?? activeTab?.conversationId
 
   if (!activeTab) {
     return (
