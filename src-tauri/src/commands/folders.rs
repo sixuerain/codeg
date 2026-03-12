@@ -2475,6 +2475,13 @@ pub async fn git_log(
         .map_err(AppCommandError::io)?;
 
     if !output.status.success() {
+        // Empty repo (no commits yet) — return empty list instead of error
+        let stderr_str = String::from_utf8_lossy(&output.stderr);
+        if stderr_str.contains("does not have any commits yet")
+            || stderr_str.contains("unknown revision or path not in the working tree")
+        {
+            return Ok(Vec::new());
+        }
         return Err(git_command_error("log", &output.stderr));
     }
 
