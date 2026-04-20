@@ -63,6 +63,7 @@ import type {
   ChatChannelMessageLog,
   ModelProviderInfo,
   PluginCheckSummary,
+  SshHostInfo,
 } from "./types"
 
 export async function listConversations(params?: {
@@ -103,12 +104,14 @@ export async function getSidebarData(): Promise<SidebarData> {
 export async function acpConnect(
   agentType: AgentType,
   workingDir?: string,
-  sessionId?: string
+  sessionId?: string,
+  hostId?: number | null
 ): Promise<string> {
   return getTransport().call("acp_connect", {
     agentType,
     workingDir: workingDir ?? null,
     sessionId: sessionId ?? null,
+    hostId: hostId ?? null,
   })
 }
 
@@ -1675,4 +1678,60 @@ export async function updateModelProvider(params: {
 
 export async function deleteModelProvider(id: number): Promise<void> {
   return getTransport().call("delete_model_provider", { id })
+}
+
+// ---------------------------------------------------------------------------
+// SSH Hosts
+// ---------------------------------------------------------------------------
+
+export async function listSshHosts(): Promise<SshHostInfo[]> {
+  return getTransport().call("list_ssh_hosts", {})
+}
+
+export async function createSshHost(params: {
+  name: string
+  host: string
+  port: number
+  username: string
+  identity_file?: string | null
+}): Promise<SshHostInfo> {
+  return getTransport().call("create_ssh_host", {
+    name: params.name,
+    host: params.host,
+    port: params.port,
+    username: params.username,
+    identityFile: params.identity_file ?? null,
+  })
+}
+
+export async function updateSshHost(params: {
+  id: number
+  name: string
+  host: string
+  port: number
+  username: string
+  identity_file?: string | null
+}): Promise<SshHostInfo> {
+  return getTransport().call("update_ssh_host", {
+    id: params.id,
+    name: params.name,
+    host: params.host,
+    port: params.port,
+    username: params.username,
+    identityFile: params.identity_file ?? null,
+  })
+}
+
+export async function deleteSshHost(id: number): Promise<void> {
+  return getTransport().call("delete_ssh_host", { id })
+}
+
+export async function setFolderSshHost(
+  folderId: number,
+  sshHostId: number | null
+): Promise<void> {
+  return getTransport().call("set_folder_ssh_host", {
+    folderId,
+    sshHostId,
+  })
 }

@@ -164,6 +164,18 @@ export interface FolderDetail {
   default_agent_type: AgentType | null
   last_opened_at: string
   opened_conversations: OpenedConversation[]
+  ssh_host_id: number | null
+}
+
+export interface SshHostInfo {
+  id: number
+  name: string
+  host: string
+  port: number
+  username: string
+  identity_file: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface OpenedConversation {

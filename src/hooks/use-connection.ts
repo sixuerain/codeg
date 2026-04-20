@@ -46,7 +46,8 @@ export interface UseConnectionReturn {
   connect: (
     agentType: AgentType,
     workingDir?: string,
-    sessionId?: string
+    sessionId?: string,
+    hostId?: number | null
   ) => Promise<void>
   disconnect: () => Promise<void>
   sendPrompt: (blocks: PromptInputBlock[]) => Promise<void>
@@ -97,8 +98,8 @@ export function useConnection(contextKey: string): UseConnectionReturn {
   const error = connection?.error ?? null
 
   const connect = useCallback(
-    (agentType: AgentType, workingDir?: string, sessionId?: string) =>
-      actions.connect(contextKey, agentType, workingDir, sessionId),
+    (agentType: AgentType, workingDir?: string, sessionId?: string, hostId?: number | null) =>
+      actions.connect(contextKey, agentType, workingDir, sessionId, hostId),
     [actions, contextKey]
   )
 

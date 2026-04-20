@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { useAcpActions } from "@/contexts/acp-connections-context"
+import { useFolderContext } from "@/contexts/folder-context"
 import { useTaskContext } from "@/contexts/task-context"
 import { useConnection, type UseConnectionReturn } from "@/hooks/use-connection"
 import { AGENT_LABELS, type AgentType, type PromptDraft } from "@/lib/types"
@@ -47,6 +48,7 @@ export function useConnectionLifecycle({
 }: UseConnectionLifecycleOptions): UseConnectionLifecycleReturn {
   const t = useTranslations("Folder.chat.connectionLifecycle")
   const { setActiveKey, touchActivity } = useAcpActions()
+  const { folder } = useFolderContext()
   const { addTask, updateTask, removeTask } = useTaskContext()
   const conn = useConnection(contextKey)
 
@@ -115,6 +117,10 @@ export function useConnectionLifecycle({
   useEffect(() => {
     sessionIdRef.current = sessionId
   }, [sessionId])
+  const folderRef = useRef(folder)
+  useEffect(() => {
+    folderRef.current = folder
+  }, [folder])
   const modeIdRef = useRef<string | null>(modes?.current_mode_id ?? null)
   useEffect(() => {
     modeIdRef.current = modes?.current_mode_id ?? null
@@ -139,7 +145,7 @@ export function useConnectionLifecycle({
     const s = statusRef.current
     if (!s || s === "disconnected" || s === "error") {
       connConnectRef
-        .current(agentTypeRef.current, workingDir, sessionIdRef.current)
+        .current(agentTypeRef.current, workingDir, sessionIdRef.current, folderRef.current?.ssh_host_id ?? null)
         .then(() => {
           if (!cancelled) {
             setLastAutoConnectError(null)
@@ -267,7 +273,7 @@ export function useConnectionLifecycle({
     touchActivity(contextKey)
     if (!status || status === "disconnected" || status === "error") {
       setLastAutoConnectError(null)
-      connConnect(agentType, workingDir, sessionId).catch((e: unknown) => {
+      connConnect(agentType, workingDir, sessionId, folder?.ssh_host_id ?? null).catch((e: unknown) => {
         if (!isExpectedConnectError(e)) {
           console.error("[ConnLifecycle] connect:", e)
         }
@@ -277,6 +283,7 @@ export function useConnectionLifecycle({
     agentType,
     workingDir,
     sessionId,
+    folder,
     status,
     connConnect,
     contextKey,

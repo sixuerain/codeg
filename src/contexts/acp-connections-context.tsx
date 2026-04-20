@@ -1265,7 +1265,8 @@ export interface AcpActionsValue {
     contextKey: string,
     agentType: AgentType,
     workingDir?: string,
-    sessionId?: string
+    sessionId?: string,
+    hostId?: number | null
   ): Promise<void>
   disconnect(contextKey: string): Promise<void>
   disconnectAll(): Promise<void>
@@ -2125,7 +2126,8 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
       contextKey: string,
       agentType: AgentType,
       workingDir?: string,
-      sessionId?: string
+      sessionId?: string,
+      hostId?: number | null
     ) => {
       if (connectingKeysRef.current.has(contextKey)) return
       connectingKeysRef.current.add(contextKey)
@@ -2196,7 +2198,7 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
         }
 
         await waitForListenerReady()
-        const connectionId = await acpConnect(agentType, workingDir, sessionId)
+        const connectionId = await acpConnect(agentType, workingDir, sessionId, hostId)
 
         // If disconnect was requested while connect was in flight,
         // tear down immediately instead of registering the connection.
