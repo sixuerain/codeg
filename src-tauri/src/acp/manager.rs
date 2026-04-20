@@ -7,6 +7,7 @@ use crate::acp::connection::{spawn_agent_connection, AgentConnection, Connection
 use crate::acp::error::AcpError;
 use crate::acp::types::{ConnectionInfo, ForkResultInfo, PromptInputBlock};
 use crate::models::agent::AgentType;
+use crate::models::SshHostInfo;
 use crate::web::event_bridge::EventEmitter;
 
 pub struct ConnectionManager {
@@ -35,6 +36,7 @@ impl ConnectionManager {
         runtime_env: BTreeMap<String, String>,
         owner_window_label: String,
         emitter: EventEmitter,
+        ssh_host: Option<SshHostInfo>,
     ) -> Result<String, AcpError> {
         let connection_id = uuid::Uuid::new_v4().to_string();
         eprintln!(
@@ -55,6 +57,7 @@ impl ConnectionManager {
             owner_window_label,
             emitter,
             self.connections.clone(),
+            ssh_host,
         )
         .await?;
 

@@ -107,6 +107,7 @@ pub async fn acp_connect(
             runtime_env,
             "web".to_string(),
             emitter,
+            None,
         )
         .await
         .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;

@@ -2006,6 +2006,7 @@ pub async fn acp_connect(
             runtime_env,
             window.label().to_string(),
             emitter,
+            None,
         )
         .await
 }

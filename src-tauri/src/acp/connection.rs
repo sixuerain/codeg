@@ -38,6 +38,7 @@ use crate::acp::types::{
     SessionConfigSelectOptionInfo, SessionModeInfo, SessionModeStateInfo,
 };
 use crate::models::agent::AgentType;
+use crate::models::SshHostInfo;
 use crate::network::proxy;
 use crate::web::event_bridge::EventEmitter;
 
@@ -147,10 +148,42 @@ impl AgentConnection {
     }
 }
 
+fn shell_quote(s: &str) -> String {
+    format!("'{}'", s.replace('\'', r"'\''"))
+}
+
+fn wrap_with_ssh(parts: Vec<String>, host: &SshHostInfo) -> Vec<String> {
+    let remote_cmd = parts
+        .iter()
+        .map(|p| shell_quote(p))
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    let mut ssh_parts = vec![
+        "ssh".to_string(),
+        "-p".to_string(),
+        host.port.to_string(),
+        "-o".to_string(),
+        "BatchMode=yes".to_string(),
+        "-o".to_string(),
+        "StrictHostKeyChecking=accept-new".to_string(),
+    ];
+
+    if let Some(key) = &host.identity_file {
+        ssh_parts.push("-i".to_string());
+        ssh_parts.push(key.clone());
+    }
+
+    ssh_parts.push(format!("{}@{}", host.username, host.host));
+    ssh_parts.push(remote_cmd);
+    ssh_parts
+}
+
 /// Build an AcpAgent from registry metadata.
 async fn build_agent(
     agent_type: AgentType,
     runtime_env: &BTreeMap<String, String>,
+    ssh_host: Option<&SshHostInfo>,
 ) -> Result<AcpAgent, AcpError> {
     let meta = registry::get_agent_meta(agent_type);
     debug_assert_eq!(meta.agent_type, agent_type);
@@ -164,15 +197,19 @@ async fn build_agent(
             for (k, v) in &merged_env {
                 parts.push(format!("{k}={v}"));
             }
-            parts.push(
-                which::which(cmd)
-                    .map(|p| p.to_string_lossy().to_string())
-                    .unwrap_or_else(|_| {
-                        crate::process::normalized_program(cmd)
-                            .to_string_lossy()
-                            .to_string()
-                    }),
-            );
+            if ssh_host.is_some() {
+                parts.push(cmd.to_string());
+            } else {
+                parts.push(
+                    which::which(cmd)
+                        .map(|p| p.to_string_lossy().to_string())
+                        .unwrap_or_else(|_| {
+                            crate::process::normalized_program(cmd)
+                                .to_string_lossy()
+                                .to_string()
+                        }),
+                );
+            }
             for a in args {
                 parts.push((*a).into());
             }
@@ -202,6 +239,11 @@ async fn build_agent(
                     parts.push("--reset-session".into());
                 }
             }
+            let parts = if let Some(host) = ssh_host {
+                wrap_with_ssh(parts, host)
+            } else {
+                parts
+            };
             let refs: Vec<&str> = parts.iter().map(|s| s.as_str()).collect();
             let agent_name = meta.name.to_string();
             AcpAgent::from_args(&refs)
@@ -221,6 +263,31 @@ async fn build_agent(
             env,
             platforms,
         } => {
+            if let Some(host) = ssh_host {
+                // Remote SSH: run the bare command name via SSH; binary must be on remote host
+                let merged_env = merge_agent_env(env, runtime_env);
+                let mut parts: Vec<String> = merged_env
+                    .iter()
+                    .map(|(k, v)| format!("{k}={v}"))
+                    .collect();
+                parts.push(cmd.to_string());
+                for a in args {
+                    parts.push((*a).into());
+                }
+                let parts = wrap_with_ssh(parts, host);
+                let refs: Vec<&str> = parts.iter().map(|s| s.as_str()).collect();
+                let agent_name = meta.name.to_string();
+                return AcpAgent::from_args(&refs)
+                    .map(|a| {
+                        a.with_debug(move |line, dir| {
+                            if dir == sacp_tokio::LineDirection::Stderr {
+                                eprintln!("[ACP][{agent_name}][stderr] {line}");
+                            }
+                        })
+                    })
+                    .map_err(|e| AcpError::SpawnFailed(e.to_string()));
+            }
+
             let platform = registry::current_platform();
             let _ = platforms
                 .iter()
@@ -363,6 +430,7 @@ pub async fn spawn_agent_connection(
     owner_window_label: String,
     emitter: EventEmitter,
     connections: Arc<tokio::sync::Mutex<HashMap<String, AgentConnection>>>,
+    ssh_host: Option<SshHostInfo>,
 ) -> Result<(), AcpError> {
     crate::web::event_bridge::emit_event(
         &emitter,
@@ -373,7 +441,7 @@ pub async fn spawn_agent_connection(
         },
     );
 
-    let agent = build_agent(agent_type, &runtime_env).await?;
+    let agent = build_agent(agent_type, &runtime_env, ssh_host.as_ref()).await?;
 
     let (cmd_tx, cmd_rx) = mpsc::channel::<ConnectionCommand>(32);
     let conn_id = connection_id.clone();

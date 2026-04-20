@@ -524,8 +524,8 @@ pub(crate) async fn set_folder_ssh_host_core(
     let model = Entity::find_by_id(folder_id)
         .one(conn)
         .await
-        .map_err(|e| AppCommandError::from(e.to_string()))?
-        .ok_or_else(|| AppCommandError::from(format!("folder #{folder_id} not found")))?;
+        .map_err(|e| AppCommandError::database_error("Failed to query folder").with_detail(e.to_string()))?
+        .ok_or_else(|| AppCommandError::task_execution_failed(format!("folder #{folder_id} not found")))?;
 
     let mut active: ActiveModel = model.into();
     active.ssh_host_id = Set(ssh_host_id);
@@ -534,7 +534,7 @@ pub(crate) async fn set_folder_ssh_host_core(
         .update(conn)
         .await
         .map(|_| ())
-        .map_err(|e| AppCommandError::from(e.to_string()))
+        .map_err(|e| AppCommandError::database_error("Failed to update folder").with_detail(e.to_string()))
 }
 
 #[cfg(feature = "tauri-runtime")]

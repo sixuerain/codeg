@@ -305,6 +305,7 @@ pub async fn handle_task(
             BTreeMap::new(),
             owner_label,
             emitter.clone(),
+            None,
         )
         .await
     {
@@ -486,6 +487,7 @@ pub async fn handle_resume(
             BTreeMap::new(),
             owner_label,
             emitter.clone(),
+            None,
         )
         .await
     {
