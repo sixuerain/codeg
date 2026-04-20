@@ -996,7 +996,8 @@
       "cloneRepository": "Clone Repository",
       "projectBoot": "Project Boot",
       "opened": "Opened",
-      "recentOpen": "Recently Opened"
+      "recentOpen": "Recently Opened",
+      "remoteHost": "Remote Host"
     },
     "fileWorkspacePanel": {
       "viewDiff": "View Diff",

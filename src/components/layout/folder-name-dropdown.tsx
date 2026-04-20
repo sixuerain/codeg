@@ -28,11 +28,13 @@ import { isDesktop, openFileDialog } from "@/lib/platform"
 import { useFolderContext } from "@/contexts/folder-context"
 import { CloneDialog } from "@/components/welcome/clone-dialog"
 import { DirectoryBrowserDialog } from "@/components/shared/directory-browser-dialog"
+import { SshHostSelector } from "@/components/shared/ssh-host-selector"
+import { Label } from "@/components/ui/label"
 import type { FolderHistoryEntry } from "@/lib/types"
 
 export function FolderNameDropdown() {
   const t = useTranslations("Folder.folderNameDropdown")
-  const { folder } = useFolderContext()
+  const { folder, refreshFolder } = useFolderContext()
   const [openFolders, setOpenFolders] = useState<FolderHistoryEntry[]>([])
   const [history, setHistory] = useState<FolderHistoryEntry[]>([])
   const [cloneOpen, setCloneOpen] = useState(false)
@@ -154,6 +156,21 @@ export function FolderNameDropdown() {
                   </div>
                 </DropdownMenuItem>
               ))}
+            </>
+          )}
+          {folder != null && (
+            <>
+              <DropdownMenuSeparator />
+              <div className="px-2 py-2 flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  {t("remoteHost")}
+                </Label>
+                <SshHostSelector
+                  folderId={folder.id}
+                  currentSshHostId={folder.ssh_host_id}
+                  onChanged={refreshFolder}
+                />
+              </div>
             </>
           )}
         </DropdownMenuContent>

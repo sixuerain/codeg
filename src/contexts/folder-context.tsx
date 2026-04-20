@@ -49,6 +49,7 @@ interface FolderContextValue {
 
   stats: AgentStats | null
 
+  refreshFolder: () => void
   refreshConversations: () => void
   /** Optimistically update a conversation's status in local state + cache. */
   updateConversationLocal: (
@@ -138,24 +139,28 @@ export function FolderProvider({
   const mountedRef = useRef(true)
 
   // Fetch folder info
-  useEffect(() => {
-    let cancelled = false
+  const fetchFolder = useCallback(() => {
     setFolderLoading(true)
     getFolder(folderId)
       .then((f) => {
-        if (!cancelled) {
+        if (mountedRef.current) {
           setFolder(f)
           setFolderLoading(false)
         }
       })
       .catch((err) => {
         console.error("[FolderProvider] getFolder failed:", err)
-        if (!cancelled) setFolderLoading(false)
+        if (mountedRef.current) setFolderLoading(false)
       })
-    return () => {
-      cancelled = true
-    }
   }, [folderId])
+
+  useEffect(() => {
+    fetchFolder()
+  }, [fetchFolder])
+
+  const refreshFolder = useCallback(() => {
+    fetchFolder()
+  }, [fetchFolder])
 
   const fetchConversations = useCallback(async () => {
     const cached = cache.get(cacheKey)
@@ -270,6 +275,7 @@ export function FolderProvider({
       startNewConversation,
       cancelNewConversation,
       stats,
+      refreshFolder,
       refreshConversations,
       updateConversationLocal,
     }),
@@ -288,6 +294,7 @@ export function FolderProvider({
       startNewConversation,
       cancelNewConversation,
       stats,
+      refreshFolder,
       refreshConversations,
       updateConversationLocal,
     ]
