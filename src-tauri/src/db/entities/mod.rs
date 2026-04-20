@@ -9,3 +9,4 @@ pub mod folder_command;
 pub mod folder_opened_conversation;
 pub mod model_provider;
 pub mod prelude;
+pub mod ssh_host;
