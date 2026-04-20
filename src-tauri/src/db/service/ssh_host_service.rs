@@ -1,6 +1,6 @@
 use chrono::Utc;
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait, QueryOrder,
+    ActiveModelTrait, ActiveValue::Set, DatabaseConnection, EntityTrait, QueryOrder,
 };
 
 use crate::db::entities::ssh_host::{ActiveModel, Column, Entity, Model};
