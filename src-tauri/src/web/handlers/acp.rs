@@ -49,6 +49,7 @@ pub struct AcpConnectParams {
     pub agent_type: AgentType,
     pub working_dir: Option<String>,
     pub session_id: Option<String>,
+    pub host_id: Option<i32>,
 }
 
 pub async fn acp_connect(
@@ -92,11 +93,24 @@ pub async fn acp_connect(
         runtime_env.insert("OPENCLAW_RESET_SESSION".into(), "1".into());
     }
 
-    // Guard: the session page must never trigger a download or install.
-    // If the agent isn't ready, return SdkNotInstalled here so the frontend
-    // can prompt the user to install it from Agent Settings.
-    acp_commands::verify_agent_installed(params.agent_type)
-        .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;
+    // Resolve SSH host config if requested.
+    let ssh_host = if let Some(hid) = params.host_id {
+        crate::db::service::ssh_host_service::get(&db.conn, hid)
+            .await
+            .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?
+            .map(crate::models::SshHostInfo::from)
+    } else {
+        None
+    };
+
+    // Skip local install check for SSH connections — the binary lives on the remote host.
+    if ssh_host.is_none() {
+        // Guard: the session page must never trigger a download or install.
+        // If the agent isn't ready, return SdkNotInstalled here so the frontend
+        // can prompt the user to install it from Agent Settings.
+        acp_commands::verify_agent_installed(params.agent_type)
+            .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;
+    }
 
     let emitter = state.emitter.clone();
     let connection_id = manager
@@ -107,7 +121,7 @@ pub async fn acp_connect(
             runtime_env,
             "web".to_string(),
             emitter,
-            None,
+            ssh_host,
         )
         .await
         .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;

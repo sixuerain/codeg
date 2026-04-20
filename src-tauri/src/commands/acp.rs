@@ -1962,6 +1962,7 @@ pub async fn acp_connect(
     agent_type: AgentType,
     working_dir: Option<String>,
     session_id: Option<String>,
+    host_id: Option<i32>,
     manager: State<'_, ConnectionManager>,
     db: State<'_, AppDatabase>,
     app_handle: tauri::AppHandle,
@@ -1992,10 +1993,23 @@ pub async fn acp_connect(
         runtime_env.insert("OPENCLAW_RESET_SESSION".into(), "1".into());
     }
 
-    // Guard: the session page must never trigger a download or install.
-    // If the agent isn't ready, return SdkNotInstalled here so the frontend
-    // can prompt the user to install it from Agent Settings.
-    verify_agent_installed(agent_type)?;
+    // Resolve SSH host config if requested.
+    let ssh_host = if let Some(hid) = host_id {
+        crate::db::service::ssh_host_service::get(&db.conn, hid)
+            .await
+            .map_err(|e| AcpError::protocol(e.to_string()))?
+            .map(crate::models::SshHostInfo::from)
+    } else {
+        None
+    };
+
+    // Skip local install check for SSH connections — the binary lives on the remote host.
+    if ssh_host.is_none() {
+        // Guard: the session page must never trigger a download or install.
+        // If the agent isn't ready, return SdkNotInstalled here so the frontend
+        // can prompt the user to install it from Agent Settings.
+        verify_agent_installed(agent_type)?;
+    }
 
     let emitter = EventEmitter::Tauri(app_handle);
     manager
@@ -2006,7 +2020,7 @@ pub async fn acp_connect(
             runtime_env,
             window.label().to_string(),
             emitter,
-            None,
+            ssh_host,
         )
         .await
 }
