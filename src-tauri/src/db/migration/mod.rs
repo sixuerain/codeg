@@ -10,6 +10,7 @@ mod m20260401_000001_chat_channel_sender_context;
 mod m20260404_000001_model_provider;
 mod m20260406_000001_agent_setting_model_provider;
 mod m20260420_000001_ssh_host;
+
 pub struct Migrator;
 
 #[async_trait::async_trait]

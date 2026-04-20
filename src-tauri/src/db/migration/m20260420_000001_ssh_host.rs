@@ -28,8 +28,8 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(SshHost::Username).string().not_null())
                     .col(ColumnDef::new(SshHost::IdentityFile).string().null())
-                    .col(ColumnDef::new(SshHost::CreatedAt).string().not_null())
-                    .col(ColumnDef::new(SshHost::UpdatedAt).string().not_null())
+                    .col(ColumnDef::new(SshHost::CreatedAt).timestamp_with_time_zone().not_null())
+                    .col(ColumnDef::new(SshHost::UpdatedAt).timestamp_with_time_zone().not_null())
                     .to_owned(),
             )
             .await

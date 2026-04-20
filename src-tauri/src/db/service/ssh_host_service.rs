@@ -25,14 +25,14 @@ pub async fn create(
     username: String,
     identity_file: Option<String>,
 ) -> Result<Model, DbError> {
-    let now = Utc::now().to_rfc3339();
+    let now = Utc::now();
     Ok(ActiveModel {
         name: Set(name),
         host: Set(host),
         port: Set(port),
         username: Set(username),
         identity_file: Set(identity_file),
-        created_at: Set(now.clone()),
+        created_at: Set(now),
         updated_at: Set(now),
         ..Default::default()
     }
@@ -59,7 +59,7 @@ pub async fn update(
     active.port = Set(port);
     active.username = Set(username);
     active.identity_file = Set(identity_file);
-    active.updated_at = Set(Utc::now().to_rfc3339());
+    active.updated_at = Set(Utc::now());
     Ok(active.update(conn).await?)
 }
 
