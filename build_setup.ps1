@@ -103,16 +103,23 @@ if ($LASTEXITCODE -ne 0) { Write-Fail "pnpm install failed." }
 Write-Ok "JS dependencies ready"
 
 # -- 4. Build ------------------------------------------------------------------
-# Suppress updater signing error (no private key in dev environments)
-$env:TAURI_SIGNING_PRIVATE_KEY = ""
+$buildArgs = @()
+if ($DevBuild) { $buildArgs += "--debug" }
+
+# When no signing private key is available (local builds), override the updater
+# pubkey to null so Tauri skips the mandatory signing step.
+if ([string]::IsNullOrEmpty($env:TAURI_SIGNING_PRIVATE_KEY)) {
+    Write-Warn "TAURI_SIGNING_PRIVATE_KEY not set — disabling updater signing for this build."
+    $buildArgs += "--config"
+    $buildArgs += '{"plugins":{"updater":{"pubkey":null}}}'
+}
 
 if ($DevBuild) {
     Write-Step "Building Tauri app (debug)..."
-    pnpm tauri build --debug
 } else {
     Write-Step "Building Tauri app (release) - first build takes ~10 min..."
-    pnpm tauri build
 }
+pnpm tauri build @buildArgs
 
 if ($LASTEXITCODE -ne 0) { Write-Fail "Tauri build failed. See output above." }
 
