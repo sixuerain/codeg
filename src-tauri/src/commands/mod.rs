@@ -6,6 +6,7 @@ pub mod folder_commands;
 pub mod folders;
 pub mod mcp;
 pub mod model_provider;
+pub mod ssh_host;
 #[cfg(feature = "tauri-runtime")]
 pub mod notification;
 pub mod project_boot;

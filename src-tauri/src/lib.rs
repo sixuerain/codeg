@@ -24,9 +24,9 @@ mod tauri_app {
     use crate::commands::{
         acp as acp_commands, chat_channel as chat_channel_commands, conversations,
         experts as experts_commands, folder_commands, folders, mcp as mcp_commands,
-        model_provider as model_provider_commands, notification, project_boot, system_settings,
-        terminal as terminal_commands, version_control, windows,
-        workspace_state as workspace_state_commands,
+        model_provider as model_provider_commands, notification, project_boot,
+        ssh_host as ssh_host_commands, system_settings, terminal as terminal_commands,
+        version_control, windows, workspace_state as workspace_state_commands,
     };
     use crate::terminal::manager::TerminalManager;
     use crate::{db, network, process, web};
@@ -447,6 +447,10 @@ mod tauri_app {
                 model_provider_commands::create_model_provider,
                 model_provider_commands::update_model_provider,
                 model_provider_commands::delete_model_provider,
+                ssh_host_commands::list_ssh_hosts,
+                ssh_host_commands::create_ssh_host,
+                ssh_host_commands::update_ssh_host,
+                ssh_host_commands::delete_ssh_host,
                 web::start_web_server,
                 web::stop_web_server,
                 web::get_web_server_status,

@@ -617,6 +617,20 @@ pub fn build_router(state: Arc<AppState>, token: String, static_dir: std::path::
             "/delete_model_provider",
             post(handlers::model_provider::delete_model_provider),
         )
+        // ─── SSH Hosts ───
+        .route("/list_ssh_hosts", post(handlers::ssh_host::list_ssh_hosts))
+        .route(
+            "/create_ssh_host",
+            post(handlers::ssh_host::create_ssh_host),
+        )
+        .route(
+            "/update_ssh_host",
+            post(handlers::ssh_host::update_ssh_host),
+        )
+        .route(
+            "/delete_ssh_host",
+            post(handlers::ssh_host::delete_ssh_host),
+        )
         // ─── Terminal ───
         .route("/terminal_spawn", post(handlers::terminal::terminal_spawn))
         .route("/terminal_write", post(handlers::terminal::terminal_write))

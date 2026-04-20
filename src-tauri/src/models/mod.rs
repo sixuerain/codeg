@@ -4,6 +4,7 @@ pub mod conversation;
 pub mod folder;
 pub mod model_provider;
 pub mod message;
+pub mod ssh_host;
 pub mod system;
 
 pub use agent::AgentType;
@@ -19,6 +20,7 @@ pub use message::{
     AgentExecutionStats, AgentToolCall, ContentBlock, MessageRole, MessageTurn, TurnRole,
     TurnUsage, UnifiedMessage,
 };
+pub use ssh_host::SshHostInfo;
 pub use system::{
     GitCredentials, GitDetectResult, GitHubAccountsSettings, GitHubTokenValidation, GitSettings,
     SystemLanguageSettings, SystemProxySettings,
