@@ -22,6 +22,15 @@ pub async fn create_ssh_host_core(
     username: String,
     identity_file: Option<String>,
 ) -> Result<SshHostInfo, AppCommandError> {
+    if !(1..=65535).contains(&port) {
+        return Err(AppCommandError::invalid_input("port must be between 1 and 65535"));
+    }
+    if name.trim().is_empty() || host.trim().is_empty() || username.trim().is_empty() {
+        return Err(AppCommandError::invalid_input(
+            "name, host, and username must not be empty",
+        ));
+    }
+
     let model = ssh_host_service::create(&db.conn, name, host, port, username, identity_file)
         .await
         .map_err(AppCommandError::from)?;
@@ -37,6 +46,15 @@ pub async fn update_ssh_host_core(
     username: String,
     identity_file: Option<String>,
 ) -> Result<SshHostInfo, AppCommandError> {
+    if !(1..=65535).contains(&port) {
+        return Err(AppCommandError::invalid_input("port must be between 1 and 65535"));
+    }
+    if name.trim().is_empty() || host.trim().is_empty() || username.trim().is_empty() {
+        return Err(AppCommandError::invalid_input(
+            "name, host, and username must not be empty",
+        ));
+    }
+
     let model =
         ssh_host_service::update(&db.conn, id, name, host, port, username, identity_file)
             .await
