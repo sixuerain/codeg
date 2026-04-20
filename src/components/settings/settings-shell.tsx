@@ -46,6 +46,7 @@ interface SettingsNavItem {
     | "chat_channels"
     | "system"
     | "web_service"
+    | "ssh_hosts"
   icon: ComponentType<{ className?: string }>
 }
 
@@ -78,6 +79,11 @@ const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
   {
     href: "/settings/model-providers",
     labelKey: "model_providers",
+    icon: Server,
+  },
+  {
+    href: "/settings/ssh-hosts",
+    labelKey: "ssh_hosts",
     icon: Server,
   },
   {

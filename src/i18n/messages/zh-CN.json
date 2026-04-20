@@ -95,7 +95,8 @@
       "chat_channels": "消息渠道",
       "web_service": "Web 服务",
       "model_providers": "模型供应商",
-      "experts": "专家"
+      "experts": "专家",
+      "ssh_hosts": "SSH Hosts"
     }
   },
   "AppearanceSettings": {
@@ -735,7 +736,8 @@
     }
   },
   "SettingsPages": {
-    "agentsLoading": "加载 Agent 设置中..."
+    "agentsLoading": "加载 Agent 设置中...",
+    "sshHostsLoading": "Loading SSH hosts..."
   },
   "CommitPage": {
     "title": "提交代码",
@@ -2071,5 +2073,27 @@
       "disableFailed": "禁用专家失败",
       "openFolderFailed": "打开目录失败"
     }
+  },
+  "SshHostSettings": {
+    "title": "SSH Hosts",
+    "description": "Configure remote servers to run AI agents over SSH. Requires passwordless SSH (key-based auth).",
+    "addHost": "Add SSH Host",
+    "editHost": "Edit SSH Host",
+    "deleteHost": "Delete",
+    "deleteConfirm": "Delete SSH host \"{name}\"? Folders using it will fall back to local.",
+    "emptyState": "No SSH hosts configured.",
+    "fields": {
+      "name": "Display Name",
+      "namePlaceholder": "e.g. dev-server",
+      "host": "Hostname",
+      "hostPlaceholder": "e.g. myserver.example.com",
+      "port": "Port",
+      "username": "Username",
+      "usernamePlaceholder": "e.g. ubuntu",
+      "identityFile": "SSH Key File (optional)",
+      "identityFilePlaceholder": "e.g. /home/user/.ssh/id_ed25519"
+    },
+    "save": "Save",
+    "cancel": "Cancel"
   }
 }

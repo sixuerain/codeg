@@ -95,7 +95,8 @@
       "chat_channels": "訊息頻道",
       "web_service": "Web 服務",
       "model_providers": "模型供應商",
-      "experts": "專家"
+      "experts": "專家",
+      "ssh_hosts": "SSH Hosts"
     }
   },
   "AppearanceSettings": {
@@ -735,7 +736,8 @@
     }
   },
   "SettingsPages": {
-    "agentsLoading": "載入 Agent 設定中..."
+    "agentsLoading": "載入 Agent 設定中...",
+    "sshHostsLoading": "Loading SSH hosts..."
   },
   "CommitPage": {
     "title": "提交程式碼",
@@ -2071,5 +2073,27 @@
       "disableFailed": "停用專家失敗",
       "openFolderFailed": "開啟目錄失敗"
     }
+  },
+  "SshHostSettings": {
+    "title": "SSH Hosts",
+    "description": "Configure remote servers to run AI agents over SSH. Requires passwordless SSH (key-based auth).",
+    "addHost": "Add SSH Host",
+    "editHost": "Edit SSH Host",
+    "deleteHost": "Delete",
+    "deleteConfirm": "Delete SSH host \"{name}\"? Folders using it will fall back to local.",
+    "emptyState": "No SSH hosts configured.",
+    "fields": {
+      "name": "Display Name",
+      "namePlaceholder": "e.g. dev-server",
+      "host": "Hostname",
+      "hostPlaceholder": "e.g. myserver.example.com",
+      "port": "Port",
+      "username": "Username",
+      "usernamePlaceholder": "e.g. ubuntu",
+      "identityFile": "SSH Key File (optional)",
+      "identityFilePlaceholder": "e.g. /home/user/.ssh/id_ed25519"
+    },
+    "save": "Save",
+    "cancel": "Cancel"
   }
 }

@@ -95,7 +95,8 @@
       "chat_channels": "채팅 채널",
       "web_service": "웹 서비스",
       "model_providers": "모델 제공업체",
-      "experts": "전문가"
+      "experts": "전문가",
+      "ssh_hosts": "SSH Hosts"
     }
   },
   "AppearanceSettings": {
@@ -735,7 +736,8 @@
     }
   },
   "SettingsPages": {
-    "agentsLoading": "에이전트 설정을 불러오는 중..."
+    "agentsLoading": "에이전트 설정을 불러오는 중...",
+    "sshHostsLoading": "Loading SSH hosts..."
   },
   "CommitPage": {
     "title": "커밋",
@@ -2071,5 +2073,27 @@
       "disableFailed": "전문가 비활성화에 실패했습니다",
       "openFolderFailed": "폴더를 열지 못했습니다"
     }
+  },
+  "SshHostSettings": {
+    "title": "SSH Hosts",
+    "description": "Configure remote servers to run AI agents over SSH. Requires passwordless SSH (key-based auth).",
+    "addHost": "Add SSH Host",
+    "editHost": "Edit SSH Host",
+    "deleteHost": "Delete",
+    "deleteConfirm": "Delete SSH host \"{name}\"? Folders using it will fall back to local.",
+    "emptyState": "No SSH hosts configured.",
+    "fields": {
+      "name": "Display Name",
+      "namePlaceholder": "e.g. dev-server",
+      "host": "Hostname",
+      "hostPlaceholder": "e.g. myserver.example.com",
+      "port": "Port",
+      "username": "Username",
+      "usernamePlaceholder": "e.g. ubuntu",
+      "identityFile": "SSH Key File (optional)",
+      "identityFilePlaceholder": "e.g. /home/user/.ssh/id_ed25519"
+    },
+    "save": "Save",
+    "cancel": "Cancel"
   }
 }
