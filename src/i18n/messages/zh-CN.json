@@ -996,7 +996,8 @@
       "cloneRepository": "克隆仓库",
       "projectBoot": "项目启动器",
       "opened": "已打开",
-      "recentOpen": "最近打开"
+      "recentOpen": "最近打开",
+      "remoteHost": "Remote Host"
     },
     "fileWorkspacePanel": {
       "viewDiff": "查看差异",

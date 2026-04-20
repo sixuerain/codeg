@@ -996,7 +996,8 @@
       "cloneRepository": "複製倉庫",
       "projectBoot": "專案啟動器",
       "opened": "已打開",
-      "recentOpen": "最近打開"
+      "recentOpen": "最近打開",
+      "remoteHost": "Remote Host"
     },
     "fileWorkspacePanel": {
       "viewDiff": "查看差異",

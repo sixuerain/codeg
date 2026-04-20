@@ -996,7 +996,8 @@
       "cloneRepository": "استنساخ المستودع",
       "projectBoot": "مُنشئ المشروع",
       "opened": "مفتوح",
-      "recentOpen": "المفتوح مؤخرًا"
+      "recentOpen": "المفتوح مؤخرًا",
+      "remoteHost": "Remote Host"
     },
     "fileWorkspacePanel": {
       "viewDiff": "عرض Diff",

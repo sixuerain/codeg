@@ -996,7 +996,8 @@
       "cloneRepository": "Clonar repositório",
       "projectBoot": "Inicializador de projeto",
       "opened": "Aberto",
-      "recentOpen": "Abertos recentemente"
+      "recentOpen": "Abertos recentemente",
+      "remoteHost": "Remote Host"
     },
     "fileWorkspacePanel": {
       "viewDiff": "Ver Diff",

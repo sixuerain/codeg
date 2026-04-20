@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   ChevronDown,
   Folder,
@@ -14,34 +14,41 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
   focusFolderWindow,
   listOpenFolders,
+  listSshHosts,
   loadFolderHistory,
   openFolderWindow,
   openProjectBootWindow,
+  setFolderSshHost,
 } from "@/lib/api"
 import { isDesktop, openFileDialog } from "@/lib/platform"
 import { useFolderContext } from "@/contexts/folder-context"
 import { CloneDialog } from "@/components/welcome/clone-dialog"
 import { DirectoryBrowserDialog } from "@/components/shared/directory-browser-dialog"
-import { SshHostSelector } from "@/components/shared/ssh-host-selector"
-import { Label } from "@/components/ui/label"
-import type { FolderHistoryEntry } from "@/lib/types"
+import type { FolderHistoryEntry, SshHostInfo } from "@/lib/types"
 
 export function FolderNameDropdown() {
   const t = useTranslations("Folder.folderNameDropdown")
   const { folder, refreshFolder } = useFolderContext()
   const [openFolders, setOpenFolders] = useState<FolderHistoryEntry[]>([])
   const [history, setHistory] = useState<FolderHistoryEntry[]>([])
+  const [sshHosts, setSshHosts] = useState<SshHostInfo[]>([])
   const [cloneOpen, setCloneOpen] = useState(false)
   const [browserOpen, setBrowserOpen] = useState(false)
 
   const folderPath = folder?.path ?? ""
   const folderName = folder?.name ?? t("fallbackFolderName")
+
+  useEffect(() => {
+    listSshHosts().then(setSshHosts).catch(console.error)
+  }, [])
 
   async function handleOpenChange(open: boolean) {
     if (open) {
@@ -161,16 +168,31 @@ export function FolderNameDropdown() {
           {folder != null && (
             <>
               <DropdownMenuSeparator />
-              <div className="px-2 py-2 flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">
-                  {t("remoteHost")}
-                </Label>
-                <SshHostSelector
-                  folderId={folder.id}
-                  currentSshHostId={folder.ssh_host_id}
-                  onChanged={refreshFolder}
-                />
-              </div>
+              <DropdownMenuLabel>{t("remoteHost")}</DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={
+                  folder.ssh_host_id != null
+                    ? String(folder.ssh_host_id)
+                    : "local"
+                }
+                onValueChange={(id) => {
+                  setFolderSshHost(
+                    folder.id,
+                    id === "local" ? null : parseInt(id, 10)
+                  )
+                    .then(() => refreshFolder())
+                    .catch(console.error)
+                }}
+              >
+                <DropdownMenuRadioItem value="local">
+                  Local
+                </DropdownMenuRadioItem>
+                {sshHosts.map((h) => (
+                  <DropdownMenuRadioItem key={h.id} value={String(h.id)}>
+                    {h.name} ({h.username}@{h.host}:{h.port})
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
             </>
           )}
         </DropdownMenuContent>

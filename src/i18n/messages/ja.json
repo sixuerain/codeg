@@ -996,7 +996,8 @@
       "cloneRepository": "リポジトリをクローン",
       "projectBoot": "プロジェクトブート",
       "opened": "開いているフォルダ",
-      "recentOpen": "最近開いたフォルダ"
+      "recentOpen": "最近開いたフォルダ",
+      "remoteHost": "Remote Host"
     },
     "fileWorkspacePanel": {
       "viewDiff": "差分を見る",
