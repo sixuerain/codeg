@@ -514,7 +514,7 @@ pub async fn set_folder_parent_branch(
 }
 
 pub(crate) async fn set_folder_ssh_host_core(
-    db: &AppDatabase,
+    conn: &sea_orm::DatabaseConnection,
     folder_id: i32,
     ssh_host_id: Option<i32>,
 ) -> Result<(), AppCommandError> {
@@ -522,7 +522,7 @@ pub(crate) async fn set_folder_ssh_host_core(
     use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait};
 
     let model = Entity::find_by_id(folder_id)
-        .one(&db.conn)
+        .one(conn)
         .await
         .map_err(|e| AppCommandError::from(e.to_string()))?
         .ok_or_else(|| AppCommandError::from(format!("folder #{folder_id} not found")))?;
@@ -531,7 +531,7 @@ pub(crate) async fn set_folder_ssh_host_core(
     active.ssh_host_id = Set(ssh_host_id);
     active.updated_at = Set(chrono::Utc::now());
     active
-        .update(&db.conn)
+        .update(conn)
         .await
         .map(|_| ())
         .map_err(|e| AppCommandError::from(e.to_string()))
@@ -540,13 +540,11 @@ pub(crate) async fn set_folder_ssh_host_core(
 #[cfg(feature = "tauri-runtime")]
 #[cfg_attr(feature = "tauri-runtime", tauri::command)]
 pub async fn set_folder_ssh_host(
+    db: tauri::State<'_, AppDatabase>,
     folder_id: i32,
     ssh_host_id: Option<i32>,
-    db: tauri::State<'_, AppDatabase>,
-) -> Result<(), String> {
-    set_folder_ssh_host_core(&db, folder_id, ssh_host_id)
-        .await
-        .map_err(|e| e.to_string())
+) -> Result<(), AppCommandError> {
+    set_folder_ssh_host_core(&db.conn, folder_id, ssh_host_id).await
 }
 
 #[cfg(feature = "tauri-runtime")]

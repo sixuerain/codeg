@@ -301,7 +301,7 @@ pub async fn set_folder_ssh_host(
     Extension(state): Extension<Arc<AppState>>,
     Json(params): Json<SetFolderSshHostParams>,
 ) -> Result<Json<()>, AppCommandError> {
-    folder_commands::set_folder_ssh_host_core(&state.db, params.folder_id, params.ssh_host_id)
+    folder_commands::set_folder_ssh_host_core(&state.db.conn, params.folder_id, params.ssh_host_id)
         .await?;
     Ok(Json(()))
 }
