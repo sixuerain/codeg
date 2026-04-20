@@ -16,6 +16,7 @@ pub struct Model {
     pub deleted_at: Option<DateTimeUtc>,
     pub is_open: bool,
     pub parent_branch: Option<String>,
+    pub ssh_host_id: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

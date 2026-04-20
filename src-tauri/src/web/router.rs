@@ -106,6 +106,10 @@ pub fn build_router(state: Arc<AppState>, token: String, static_dir: std::path::
             post(handlers::folders::create_folder_directory),
         )
         .route(
+            "/set_folder_ssh_host",
+            post(handlers::folders::set_folder_ssh_host),
+        )
+        .route(
             "/save_folder_opened_conversations",
             post(handlers::folders::save_folder_opened_conversations),
         )

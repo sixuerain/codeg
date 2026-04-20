@@ -35,6 +35,7 @@ fn to_detail(m: folder::Model, opened: Vec<OpenedConversation>) -> FolderDetail 
         default_agent_type,
         last_opened_at: m.last_opened_at,
         opened_conversations: opened,
+        ssh_host_id: m.ssh_host_id,
     }
 }
 
@@ -92,6 +93,7 @@ pub async fn add_folder(
             updated_at: Set(now),
             deleted_at: Set(None),
             is_open: Set(true),
+            ssh_host_id: Set(None),
         };
         active.insert(conn).await?
     };

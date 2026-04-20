@@ -275,6 +275,7 @@ mod tauri_app {
                 folders::get_folder,
                 folders::add_folder_to_history,
                 folders::set_folder_parent_branch,
+                folders::set_folder_ssh_host,
                 folders::remove_folder_from_history,
                 folders::create_folder_directory,
                 folders::clone_repository,

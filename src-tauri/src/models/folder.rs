@@ -21,6 +21,7 @@ pub struct FolderDetail {
     pub default_agent_type: Option<AgentType>,
     pub last_opened_at: DateTime<Utc>,
     pub opened_conversations: Vec<OpenedConversation>,
+    pub ssh_host_id: Option<i32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -10,6 +10,7 @@ mod m20260401_000001_chat_channel_sender_context;
 mod m20260404_000001_model_provider;
 mod m20260406_000001_agent_setting_model_provider;
 mod m20260420_000001_ssh_host;
+mod m20260420_000002_folder_ssh_host;
 
 pub struct Migrator;
 
@@ -27,6 +28,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260404_000001_model_provider::Migration),
             Box::new(m20260406_000001_agent_setting_model_provider::Migration),
             Box::new(m20260420_000001_ssh_host::Migration),
+            Box::new(m20260420_000002_folder_ssh_host::Migration),
         ]
     }
 }

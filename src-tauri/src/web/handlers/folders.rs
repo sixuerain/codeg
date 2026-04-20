@@ -289,3 +289,19 @@ pub async fn create_folder_directory(
     folder_commands::create_folder_directory(params.path).await?;
     Ok(Json(()))
 }
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SetFolderSshHostParams {
+    pub folder_id: i32,
+    pub ssh_host_id: Option<i32>,
+}
+
+pub async fn set_folder_ssh_host(
+    Extension(state): Extension<Arc<AppState>>,
+    Json(params): Json<SetFolderSshHostParams>,
+) -> Result<Json<()>, AppCommandError> {
+    folder_commands::set_folder_ssh_host_core(&state.db, params.folder_id, params.ssh_host_id)
+        .await?;
+    Ok(Json(()))
+}
