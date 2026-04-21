@@ -111,7 +111,7 @@ if ($DevBuild) { $buildArgs += "--debug" }
 if ([string]::IsNullOrEmpty($env:TAURI_SIGNING_PRIVATE_KEY)) {
     Write-Warn "TAURI_SIGNING_PRIVATE_KEY not set - disabling updater signing for this build."
     $buildArgs += "--config"
-    $buildArgs += '{"plugins":{"updater":{"pubkey":null}}}'
+    $buildArgs += '{\"plugins\":{\"updater\":{\"pubkey\":null}}}'
 }
 
 if ($DevBuild) {
