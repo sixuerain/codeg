@@ -24,6 +24,7 @@ pub async fn create(
     port: i32,
     username: String,
     identity_file: Option<String>,
+    shell_init: Option<String>,
 ) -> Result<Model, DbError> {
     let now = Utc::now();
     Ok(ActiveModel {
@@ -32,6 +33,7 @@ pub async fn create(
         port: Set(port),
         username: Set(username),
         identity_file: Set(identity_file),
+        shell_init: Set(shell_init),
         created_at: Set(now),
         updated_at: Set(now),
         ..Default::default()
@@ -48,6 +50,7 @@ pub async fn update(
     port: i32,
     username: String,
     identity_file: Option<String>,
+    shell_init: Option<String>,
 ) -> Result<Model, DbError> {
     let model = Entity::find_by_id(id)
         .one(conn)
@@ -59,6 +62,7 @@ pub async fn update(
     active.port = Set(port);
     active.username = Set(username);
     active.identity_file = Set(identity_file);
+    active.shell_init = Set(shell_init);
     active.updated_at = Set(Utc::now());
     Ok(active.update(conn).await?)
 }

@@ -10,6 +10,7 @@ pub struct Model {
     pub port: i32,
     pub username: String,
     pub identity_file: Option<String>,
+    pub shell_init: Option<String>,
     pub created_at: DateTimeUtc,
     pub updated_at: DateTimeUtc,
 }

@@ -8,6 +8,7 @@ pub struct SshHostInfo {
     pub port: i32,
     pub username: String,
     pub identity_file: Option<String>,
+    pub shell_init: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -21,6 +22,7 @@ impl From<crate::db::entities::ssh_host::Model> for SshHostInfo {
             port: m.port,
             username: m.username,
             identity_file: m.identity_file,
+            shell_init: m.shell_init,
             created_at: m.created_at.to_rfc3339(),
             updated_at: m.updated_at.to_rfc3339(),
         }

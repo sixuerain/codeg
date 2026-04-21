@@ -2092,7 +2092,9 @@
       "username": "Username",
       "usernamePlaceholder": "e.g. ubuntu",
       "identityFile": "SSH Key File (optional)",
-      "identityFilePlaceholder": "e.g. /home/user/.ssh/id_ed25519"
+      "identityFilePlaceholder": "e.g. /home/user/.ssh/id_ed25519",
+      "shellInit": "Shell Init Command (optional)",
+      "shellInitPlaceholder": "e.g. . ~/.nvm/nvm.sh"
     },
     "save": "Save",
     "cancel": "Cancel"

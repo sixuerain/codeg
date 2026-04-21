@@ -11,6 +11,7 @@ mod m20260404_000001_model_provider;
 mod m20260406_000001_agent_setting_model_provider;
 mod m20260420_000001_ssh_host;
 mod m20260420_000002_folder_ssh_host;
+mod m20260421_000001_ssh_host_shell_init;
 
 pub struct Migrator;
 
@@ -29,6 +30,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260406_000001_agent_setting_model_provider::Migration),
             Box::new(m20260420_000001_ssh_host::Migration),
             Box::new(m20260420_000002_folder_ssh_host::Migration),
+            Box::new(m20260421_000001_ssh_host_shell_init::Migration),
         ]
     }
 }

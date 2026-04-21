@@ -37,6 +37,7 @@ interface HostFormState {
   port: string
   username: string
   identityFile: string
+  shellInit: string
 }
 
 const EMPTY_FORM: HostFormState = {
@@ -45,6 +46,7 @@ const EMPTY_FORM: HostFormState = {
   port: "22",
   username: "",
   identityFile: "",
+  shellInit: "",
 }
 
 export function SshHostSettings() {
@@ -76,6 +78,7 @@ export function SshHostSettings() {
       port: String(h.port),
       username: h.username,
       identityFile: h.identity_file ?? "",
+      shellInit: h.shell_init ?? "",
     })
     setDialogOpen(true)
   }
@@ -85,6 +88,7 @@ export function SshHostSettings() {
     try {
       const port = parseInt(form.port, 10) || 22
       const identity_file = form.identityFile.trim() || null
+      const shell_init = form.shellInit.trim() || null
       if (editingHost) {
         await updateSshHost({
           id: editingHost.id,
@@ -93,6 +97,7 @@ export function SshHostSettings() {
           port,
           username: form.username.trim(),
           identity_file,
+          shell_init,
         })
       } else {
         await createSshHost({
@@ -101,6 +106,7 @@ export function SshHostSettings() {
           port,
           username: form.username.trim(),
           identity_file,
+          shell_init,
         })
       }
       setDialogOpen(false)
@@ -202,6 +208,13 @@ export function SshHostSettings() {
               <Input
                 placeholder={t("fields.identityFilePlaceholder")}
                 {...field("identityFile")}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>{t("fields.shellInit")}</Label>
+              <Input
+                placeholder={t("fields.shellInitPlaceholder")}
+                {...field("shellInit")}
               />
             </div>
           </div>

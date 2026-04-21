@@ -1694,6 +1694,7 @@ export async function createSshHost(params: {
   port: number
   username: string
   identity_file?: string | null
+  shell_init?: string | null
 }): Promise<SshHostInfo> {
   return getTransport().call("create_ssh_host", {
     name: params.name,
@@ -1701,6 +1702,7 @@ export async function createSshHost(params: {
     port: params.port,
     username: params.username,
     identityFile: params.identity_file ?? null,
+    shellInit: params.shell_init ?? null,
   })
 }
 
@@ -1711,6 +1713,7 @@ export async function updateSshHost(params: {
   port: number
   username: string
   identity_file?: string | null
+  shell_init?: string | null
 }): Promise<SshHostInfo> {
   return getTransport().call("update_ssh_host", {
     id: params.id,
@@ -1719,6 +1722,7 @@ export async function updateSshHost(params: {
     port: params.port,
     username: params.username,
     identityFile: params.identity_file ?? null,
+    shellInit: params.shell_init ?? null,
   })
 }
 

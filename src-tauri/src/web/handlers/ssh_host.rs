@@ -20,6 +20,7 @@ pub struct CreateSshHostParams {
     pub port: i32,
     pub username: String,
     pub identity_file: Option<String>,
+    pub shell_init: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -31,6 +32,7 @@ pub struct UpdateSshHostParams {
     pub port: i32,
     pub username: String,
     pub identity_file: Option<String>,
+    pub shell_init: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -61,6 +63,7 @@ pub async fn create_ssh_host(
         params.port,
         params.username,
         params.identity_file,
+        params.shell_init,
     )
     .await?;
     Ok(Json(result))
@@ -78,6 +81,7 @@ pub async fn update_ssh_host(
         params.port,
         params.username,
         params.identity_file,
+        params.shell_init,
     )
     .await?;
     Ok(Json(result))

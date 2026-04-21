@@ -163,7 +163,14 @@ fn wrap_with_ssh(parts: Vec<String>, host: &SshHostInfo) -> Vec<String> {
     // Wrap in `bash -l -c '...'` so the remote login profile is sourced.
     // Non-interactive SSH does not source .bashrc/.profile, so tools installed
     // via nvm/pyenv/etc. would be missing from PATH without this wrapper.
-    let remote_cmd = format!("bash -l -c {}", shell_quote(&inner_cmd));
+    // If the host has a shell_init command (e.g. `. ~/.nvm/nvm.sh`), prepend it
+    // so that additional PATH setup (nvm, pyenv, custom installs) is available.
+    let shell_payload = if let Some(init) = host.shell_init.as_deref().filter(|s| !s.is_empty()) {
+        format!("{}; exec {}", init, inner_cmd)
+    } else {
+        format!("exec {}", inner_cmd)
+    };
+    let remote_cmd = format!("bash -l -c {}", shell_quote(&shell_payload));
 
     let mut ssh_parts = vec![
         "ssh".to_string(),

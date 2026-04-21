@@ -21,30 +21,7 @@ pub async fn create_ssh_host_core(
     port: i32,
     username: String,
     identity_file: Option<String>,
-) -> Result<SshHostInfo, AppCommandError> {
-    if !(1..=65535).contains(&port) {
-        return Err(AppCommandError::invalid_input("port must be between 1 and 65535"));
-    }
-    if name.trim().is_empty() || host.trim().is_empty() || username.trim().is_empty() {
-        return Err(AppCommandError::invalid_input(
-            "name, host, and username must not be empty",
-        ));
-    }
-
-    let model = ssh_host_service::create(&db.conn, name, host, port, username, identity_file)
-        .await
-        .map_err(AppCommandError::from)?;
-    Ok(SshHostInfo::from(model))
-}
-
-pub async fn update_ssh_host_core(
-    db: &AppDatabase,
-    id: i32,
-    name: String,
-    host: String,
-    port: i32,
-    username: String,
-    identity_file: Option<String>,
+    shell_init: Option<String>,
 ) -> Result<SshHostInfo, AppCommandError> {
     if !(1..=65535).contains(&port) {
         return Err(AppCommandError::invalid_input("port must be between 1 and 65535"));
@@ -56,9 +33,43 @@ pub async fn update_ssh_host_core(
     }
 
     let model =
-        ssh_host_service::update(&db.conn, id, name, host, port, username, identity_file)
+        ssh_host_service::create(&db.conn, name, host, port, username, identity_file, shell_init)
             .await
             .map_err(AppCommandError::from)?;
+    Ok(SshHostInfo::from(model))
+}
+
+pub async fn update_ssh_host_core(
+    db: &AppDatabase,
+    id: i32,
+    name: String,
+    host: String,
+    port: i32,
+    username: String,
+    identity_file: Option<String>,
+    shell_init: Option<String>,
+) -> Result<SshHostInfo, AppCommandError> {
+    if !(1..=65535).contains(&port) {
+        return Err(AppCommandError::invalid_input("port must be between 1 and 65535"));
+    }
+    if name.trim().is_empty() || host.trim().is_empty() || username.trim().is_empty() {
+        return Err(AppCommandError::invalid_input(
+            "name, host, and username must not be empty",
+        ));
+    }
+
+    let model = ssh_host_service::update(
+        &db.conn,
+        id,
+        name,
+        host,
+        port,
+        username,
+        identity_file,
+        shell_init,
+    )
+    .await
+    .map_err(AppCommandError::from)?;
     Ok(SshHostInfo::from(model))
 }
 
@@ -89,8 +100,9 @@ pub async fn create_ssh_host(
     port: i32,
     username: String,
     identity_file: Option<String>,
+    shell_init: Option<String>,
 ) -> Result<SshHostInfo, AppCommandError> {
-    create_ssh_host_core(&db, name, host, port, username, identity_file).await
+    create_ssh_host_core(&db, name, host, port, username, identity_file, shell_init).await
 }
 
 #[cfg(feature = "tauri-runtime")]
@@ -103,8 +115,9 @@ pub async fn update_ssh_host(
     port: i32,
     username: String,
     identity_file: Option<String>,
+    shell_init: Option<String>,
 ) -> Result<SshHostInfo, AppCommandError> {
-    update_ssh_host_core(&db, id, name, host, port, username, identity_file).await
+    update_ssh_host_core(&db, id, name, host, port, username, identity_file, shell_init).await
 }
 
 #[cfg(feature = "tauri-runtime")]

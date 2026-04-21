@@ -174,6 +174,7 @@ export interface SshHostInfo {
   port: number
   username: string
   identity_file: string | null
+  shell_init: string | null
   created_at: string
   updated_at: string
 }
