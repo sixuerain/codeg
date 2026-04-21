@@ -109,7 +109,7 @@ if ($DevBuild) { $buildArgs += "--debug" }
 # When no signing private key is available (local builds), override the updater
 # pubkey to null so Tauri skips the mandatory signing step.
 if ([string]::IsNullOrEmpty($env:TAURI_SIGNING_PRIVATE_KEY)) {
-    Write-Warn "TAURI_SIGNING_PRIVATE_KEY not set — disabling updater signing for this build."
+    Write-Warn "TAURI_SIGNING_PRIVATE_KEY not set - disabling updater signing for this build."
     $buildArgs += "--config"
     $buildArgs += '{"plugins":{"updater":{"pubkey":null}}}'
 }
