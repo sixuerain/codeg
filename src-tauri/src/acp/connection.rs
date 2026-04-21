@@ -153,11 +153,12 @@ fn shell_quote(s: &str) -> String {
 }
 
 fn wrap_with_ssh(parts: Vec<String>, host: &SshHostInfo) -> Vec<String> {
-    let remote_cmd = parts
-        .iter()
-        .map(|p| shell_quote(p))
-        .collect::<Vec<_>>()
-        .join(" ");
+    // Prefix with `env` so that KEY=VALUE parts are passed to env(1) rather
+    // than written bare in the shell command. Single-quoting `KEY=VALUE` would
+    // make the shell treat it as a command name, not an assignment.
+    let mut tokens = vec!["env".to_string()];
+    tokens.extend(parts.iter().map(|p| shell_quote(p)));
+    let remote_cmd = tokens.join(" ");
 
     let mut ssh_parts = vec![
         "ssh".to_string(),
