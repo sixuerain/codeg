@@ -153,12 +153,17 @@ fn shell_quote(s: &str) -> String {
 }
 
 fn wrap_with_ssh(parts: Vec<String>, host: &SshHostInfo) -> Vec<String> {
-    // Prefix with `env` so that KEY=VALUE parts are passed to env(1) rather
-    // than written bare in the shell command. Single-quoting `KEY=VALUE` would
-    // make the shell treat it as a command name, not an assignment.
+    // Build the inner command: `env KEY=VALUE ... cmd args`
+    // Using env(1) so that single-quoted KEY=VALUE args are parsed as env var
+    // assignments rather than being treated as command names by the shell.
     let mut tokens = vec!["env".to_string()];
     tokens.extend(parts.iter().map(|p| shell_quote(p)));
-    let remote_cmd = tokens.join(" ");
+    let inner_cmd = tokens.join(" ");
+
+    // Wrap in `bash -l -c '...'` so the remote login profile is sourced.
+    // Non-interactive SSH does not source .bashrc/.profile, so tools installed
+    // via nvm/pyenv/etc. would be missing from PATH without this wrapper.
+    let remote_cmd = format!("bash -l -c {}", shell_quote(&inner_cmd));
 
     let mut ssh_parts = vec![
         "ssh".to_string(),
